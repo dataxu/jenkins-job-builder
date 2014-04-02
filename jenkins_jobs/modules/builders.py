@@ -1497,3 +1497,32 @@ def managed_script(parser, xml_parent, data):
     args = XML.SubElement(ms, 'buildStepArgs')
     for arg in data.get('args', []):
         XML.SubElement(args, 'string').text = arg
+
+def system_groovy(parser, xml_parent, data):
+  """yaml: system-groovy
+  Execute a system groovy command.
+
+  :Parameter: the system groovy command to execute
+
+  Example::
+
+    builders:
+      - system-groovy: |
+          import hudson.model.*
+          jenkins = jenkins.model.Jenkins.instance;
+          build = Thread.currentThread().executable
+          build_number = build.getNumber()
+          build.setDisplayName("#$build_number example")
+
+  """
+  groovy = XML.SubElement(xml_parent, 'hudson.plugins.groovy.SystemGroovy')
+  source = XML.SubElement(groovy, 'scriptSource')
+  source.set('class', 'hudson.plugins.groovy.StringScriptSource')
+  if 'command' in data:
+    XML.SubElement(source, 'command').text = data.get('command', '')
+    XML.SubElement(groovy, 'bindings').text = data.get('bindings' ,'')
+    XML.SubElement(groovy, 'classpath').text = data.get('classpath', '')
+  else:
+    XML.SubElement(source, 'command').text = data
+    XML.SubElement(groovy, 'bindings').text = ''
+    XML.SubElement(groovy, 'classpath').text = ''
