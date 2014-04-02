@@ -932,7 +932,6 @@ def delivery_pipeline(parser, xml_parent, data):
     XML.SubElement(pvc, 'updateDisplayName').text = str(data.get(
         'set-display-name', False)).lower()
 
-
 def matrix_tie_parent(parser, xml_parent, data):
     """yaml: matrix-tie-parent
     Tie parent to a node.
@@ -979,6 +978,33 @@ def exclusion(parser, xml_parent, data):
         XML.SubElement(dit, 'name').text = str(resource).upper()
 
 
+def artifactory(parser, xml_parent, data):
+    """ yaml: artifactory
+    Requires the Artifactory plugin.
+
+    :arg str url: URL of the Artifactory server. e.g. http://my.artifactory.com/artifactory
+        (default: '')
+    :arg str repo-key: Name of the repository to search for artifact dependencies
+        (default: '')
+
+    Example:
+
+      wrappers:
+        - artifactory:
+            url: http://172.18.8.16:8081/artifactory
+            repo-key: repo
+
+    """
+
+    artifactory = XML.SubElement(xml_parent,
+                                 'org.jfrog.hudson.maven3.ArtifactoryMaven3NativeConfigurator')
+
+    # details
+    details = XML.SubElement(artifactory, 'details')
+    XML.SubElement(details, 'artifactoryUrl').text = data['url']
+    XML.SubElement(details, 'artifactoryName').text = data['name']
+    XML.SubElement(details, 'downloadRepositoryKey').text = data['repo-key']
+    
 class Wrappers(jenkins_jobs.modules.base.Base):
     sequence = 80
 
