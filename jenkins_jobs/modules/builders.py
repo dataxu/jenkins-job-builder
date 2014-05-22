@@ -1197,10 +1197,7 @@ def system_groovy(parser, xml_parent, data):
   source.set('class', 'hudson.plugins.groovy.StringScriptSource')
   if 'command' in data:
     XML.SubElement(source, 'command').text = data.get('command', '')
-    XML.SubElement(groovy, 'bindings').text = data.get('bindings' ,'')
-    XML.SubElement(groovy, 'classpath').text = data.get('classpath', '')
-  else:
-    XML.SubElement(source, 'command').text = data
-    XML.SubElement(groovy, 'bindings').text = ''
-    XML.SubElement(groovy, 'classpath').text = ''
-
+  elif 'file' in data:
+    XML.SubElement(source, 'scriptFile').text = data.get('file', '')
+  XML.SubElement(groovy, 'bindings').text = data.get('bindings' ,'')
+  XML.SubElement(groovy, 'classpath').text = data.get('classpath', '')
