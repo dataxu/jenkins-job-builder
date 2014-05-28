@@ -48,4 +48,6 @@ class Flow(jenkins_jobs.modules.base.Base):
         else:
             XML.SubElement(xml_parent, 'dsl').text = ''
 
+        XML.SubElement(xml_parent, 'buildNeedsWorkspace').text = data.get('build-needs-workspace', 'false')
+
         return xml_parent
