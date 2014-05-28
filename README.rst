@@ -85,6 +85,6 @@ Installing
     $ pip install git+ssh://git@github.com/dataxu/jenkins-job-builder.git@master#jenkins-job-builder --upgrade
 
 Additions include:
-* artifactory support
-* system-groovy support
-* build-flow clone repo support (build-needs-workspace)
+ * artifactory support
+ * system-groovy support
+ * build-flow clone repo support (build-needs-workspace)
