@@ -77,3 +77,14 @@ Then install the required python packages using pip_::
 .. _tox: https://testrun.org/tox
 .. _libyaml: http://pyyaml.org/wiki/LibYAML
 .. _pip: https://pypi.python.org/pypi/pip
+
+Fork Enhancements
+=================
+Installing
+```
+pip install git+ssh://git@github.com/dataxu/jenkins-job-builder.git@master#jenkins-job-builder --upgrade
+```
+Additions include:
+- artifactory support
+- system-groovy support
+- build-flow clone repo support (build-needs-workspace)
