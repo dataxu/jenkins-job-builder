@@ -1194,10 +1194,12 @@ def system_groovy(parser, xml_parent, data):
   """
   groovy = XML.SubElement(xml_parent, 'hudson.plugins.groovy.SystemGroovy')
   source = XML.SubElement(groovy, 'scriptSource')
-  source.set('class', 'hudson.plugins.groovy.StringScriptSource')
+  
   if 'command' in data:
+    source.set('class', 'hudson.plugins.groovy.StringScriptSource')
     XML.SubElement(source, 'command').text = data.get('command', '')
   elif 'file' in data:
+    source.set('class', 'hudson.plugins.groovy.FileScriptSource')
     XML.SubElement(source, 'scriptFile').text = data.get('file', '')
   XML.SubElement(groovy, 'bindings').text = data.get('bindings' ,'')
   XML.SubElement(groovy, 'classpath').text = data.get('classpath', '')
