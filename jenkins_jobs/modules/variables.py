@@ -27,11 +27,9 @@ class Variables(jenkins_jobs.modules.base.Base):
 
                 ret = string.Formatter().vformat(obj, (), vardict)
                 self.changed &= ret == obj
-            except KeyError as exc:
-                missing_key = exc.message
-                desc = "%s parameter missing to format %s\nGiven: %s" % (
-                       missing_key, obj, vardict)
-                raise JenkinsJobsException(desc)
+            except:
+                logger.debug("Error with %s") % obj
+
         elif isinstance(obj, list):
             ret = []
             for item in obj:
