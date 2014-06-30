@@ -55,5 +55,7 @@ class Variables(jenkins_jobs.modules.base.Base):
             add_vars = parser.config.items('vars')
             for var in add_vars:
                 config_vars[var[0]] = var[1]
+
+        if config_vars:
             parser.data = self.deep_replace(parser.data, SafeDict(**config_vars))
         return self.changed

@@ -75,6 +75,7 @@ def main(argv=None):
     parser.add_argument('--conf', dest='conf', help='configuration file')
     parser.add_argument('-l', '--log_level', dest='log_level', default='info',
                         help="log level (default: %(default)s)")
+    parser.add_argument('-e', '--extra_vars', dest='extra_vars', action='append', help='extra variables to define in var=val format')
     parser.add_argument(
         '--ignore-cache', action='store_true',
         dest='ignore_cache', default=False,
@@ -142,6 +143,17 @@ def execute(options, config, logger):
         password = config.get('jenkins', 'password')
     except (TypeError, ConfigParser.NoOptionError):
         password = None
+
+    if options.extra_vars:
+        if not config.has_section('vars'):
+            config.add_section('vars')
+        for var in options.extra_vars:
+            key_var = var.split('=')
+            if len(key_var) != 2:
+                raise JenkinsJobsException(
+                    "Invalid extra_vars set on command line: {0}".format(var))
+            config.set('vars', key_var[0], key_var[1])
+
 
     builder = Builder(config.get('jenkins', 'url'),
                       user,
