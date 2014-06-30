@@ -25,7 +25,7 @@ class Variables(jenkins_jobs.modules.base.Base):
             logger.debug(obj)
             try:
 
-                ret = string.Formatter().vformat(str(obj), (), vardict)
+                ret = string.Formatter().vformat(obj, (), vardict)
                 self.changed &= ret == obj
             except KeyError as exc:
                 missing_key = exc.message
@@ -39,9 +39,10 @@ class Variables(jenkins_jobs.modules.base.Base):
         elif isinstance(obj, dict):
             ret = {}
             for item in obj:
-                key = string.Formatter().vformat(str(item), (), vardict)
-                ret[key] = self.deep_replace(obj[item], vardict)
-                self.changed &= key == item and ret[key] == obj[item]
+                if isinstance(item, str):
+                    key = string.Formatter().vformat(item, (), vardict)
+                    ret[key] = self.deep_replace(obj[item], vardict)
+                    self.changed &= key == item and ret[key] == obj[item]
         else:
             ret = obj
         return ret
