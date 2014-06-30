@@ -28,6 +28,7 @@ class Variables(jenkins_jobs.modules.base.Base):
                 ret = string.Formatter().vformat(obj, (), vardict)
                 self.changed &= ret == obj
             except:
+                ret = obj
                 logger.debug("Error with %s" % (obj))
 
         elif isinstance(obj, list):
