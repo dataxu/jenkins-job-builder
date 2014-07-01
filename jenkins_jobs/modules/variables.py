@@ -43,7 +43,7 @@ class Variables(jenkins_jobs.modules.base.Base):
                 else:
                     key = item
                 ret[key] = self.deep_replace(obj[item], vardict)
-                self.changed |= key == item and ret[key] == obj[item]
+                self.changed |= key == item
 
         else:
             ret = obj
