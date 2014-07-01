@@ -26,7 +26,7 @@ class Variables(jenkins_jobs.modules.base.Base):
             try:
 
                 ret = string.Formatter().vformat(obj, (), vardict)
-                self.changed &= ret == obj
+                self.changed |= ret == obj
             except:
                 ret = obj
                 logger.debug("Error with %s" % (obj))
@@ -43,7 +43,7 @@ class Variables(jenkins_jobs.modules.base.Base):
                 else:
                     key = item
                 ret[key] = self.deep_replace(obj[item], vardict)
-                self.changed &= key == item and ret[key] == obj[item]
+                self.changed |= key == item and ret[key] == obj[item]
 
         else:
             ret = obj
