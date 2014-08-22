@@ -1244,7 +1244,7 @@ def artifactory(parser, xml_parent, data):
     XML.SubElement(details, 'artifactoryName').text = data['name']
     if 'repo-key' in data:
         XML.SubElement(details, 'downloadRepositoryKey').text = data['repo-key']
-    else if 'snapshot-repo-key' in data and 'release-repo-key' in data:
+    elif 'snapshot-repo-key' in data and 'release-repo-key' in data:
         XML.SubElement(details, 'downloadSnapshotRepositoryKey').text = data['snapshot-repo-key']
         XML.SubElement(details, 'downloadReleaseRepositoryKey').text = data['release-repo-key']
 
