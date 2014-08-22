@@ -1242,7 +1242,12 @@ def artifactory(parser, xml_parent, data):
     details = XML.SubElement(artifactory, 'details')
     XML.SubElement(details, 'artifactoryUrl').text = data['url']
     XML.SubElement(details, 'artifactoryName').text = data['name']
-    XML.SubElement(details, 'downloadRepositoryKey').text = data['repo-key']
+    if 'repo-key' in data:
+        XML.SubElement(details, 'downloadRepositoryKey').text = data['repo-key']
+    else if 'snapshot-repo-key' in data and 'release-repo-key' in data:
+        XML.SubElement(details, 'downloadSnapshotRepositoryKey').text = data['snapshot-repo-key']
+        XML.SubElement(details, 'downloadReleaseRepositoryKey').text = data['release-repo-key']
+
     
 
 class Wrappers(jenkins_jobs.modules.base.Base):
