@@ -2664,8 +2664,8 @@ def robot(parser, xml_parent, data):
     """
     parent = XML.SubElement(xml_parent, 'hudson.plugins.robot.RobotPublisher')
     XML.SubElement(parent, 'outputPath').text = data['output-path']
-    XML.SubElement(parent, 'logFileLink').text = str(
-        data.get('log-file-link', ''))
+    # XML.SubElement(parent, 'logFileLink').text = str(
+    #     data.get('log-file-link', ''))
     XML.SubElement(parent, 'reportFileName').text = str(
         data.get('report-html', 'report.html'))
     XML.SubElement(parent, 'logFileName').text = str(
