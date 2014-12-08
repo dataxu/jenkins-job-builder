@@ -692,37 +692,6 @@ def groovy(parser, xml_parent, data):
     XML.SubElement(groovy, 'classPath').text = str(data.get('class-path', ""))
 
 
-def system_groovy(parser, xml_parent, data):
-    """yaml: system-groovy
-    Execute a system groovy script or command.
-    Requires the Jenkins `Groovy Plugin
-    <https://wiki.jenkins-ci.org/display/JENKINS/Groovy+plugin>`_
-
-    :arg str file: Groovy file to run.
-      (Alternative: you can chose a command instead)
-    :arg str command: Groovy command to run.
-      (Alternative: you can chose a script file instead)
-    :arg str bindings: Define variable bindings (in the properties file
-      format). Specified variables can be addressed from the script. (optional)
-    :arg str class-path: Specify script classpath here. Each line is one class
-      path item. (optional)
-
-    Examples:
-
-    .. literalinclude:: ../../tests/builders/fixtures/system-groovy001.yaml
-       :language: yaml
-    .. literalinclude:: ../../tests/builders/fixtures/system-groovy002.yaml
-       :language: yaml
-    """
-
-    root_tag = 'hudson.plugins.groovy.SystemGroovy'
-    sysgroovy = XML.SubElement(xml_parent, root_tag)
-    sysgroovy.append(_groovy_common_scriptSource(data))
-    XML.SubElement(sysgroovy, 'bindings').text = str(data.get('bindings', ""))
-    XML.SubElement(sysgroovy, 'classpath').text = \
-        str(data.get('class-path', ""))
-
-
 def batch(parser, xml_parent, data):
     """yaml: batch
     Execute a batch command.
