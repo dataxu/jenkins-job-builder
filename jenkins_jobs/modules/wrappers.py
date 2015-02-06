@@ -1248,6 +1248,50 @@ def artifactory(parser, xml_parent, data):
         XML.SubElement(details, 'downloadSnapshotRepositoryKey').text = data['snapshot-repo-key']
         XML.SubElement(details, 'downloadReleaseRepositoryKey').text = data['release-repo-key']
 
+
+def generic_artifactory(parser, xml_parent, data):
+    """ yaml: generic-artifactory
+    Requires the Artifactory plugin.
+
+    :arg str url: URL of the Artifactory server. e.g. http://my.artifactory.com/artifactory
+        (default: '')
+    :arg str repo-key: Name of the repository to search for artifact dependencies
+        (default: '')
+
+    Example:
+
+      wrappers:
+        - artifactory:
+            url: http://172.18.8.16:8081/artifactory
+            repo-key: repo
+
+    """
+
+    artifactory = XML.SubElement(xml_parent,
+                                 'org.jfrog.hudson.generic.ArtifactoryGenericConfigurator')
+
+    # required
+    details = XML.SubElement(artifactory, 'details')
+    XML.SubElement(details, 'artifactoryUrl').text = data['url']
+    XML.SubElement(details, 'artifactoryName').text = data['name']
+    XML.SubElement(details, 'repositoryKey').text = data['repo-key']
+    XML.SubElement(details, 'snapshotsRepositoryKey').text = data['repo-key']
+
+    # optional
+    XML.SubElement(details, 'deployPattern').text = data.get('deploy-pattern', '')
+    XML.SubElement(details, 'resolvePattern').text = data.get('resolve-pattern', '')
+    XML.SubElement(details, 'matrixParams').text = data.get('matric-params', '')
+    XML.SubElement(details, 'deployBuildInfo').text = str(data.get('deploy-build-info', False)).lower()
+    XML.SubElement(details, 'includeEnvVars').text = str(data.get('include-env-vars', False)).lower()
+
+    details = XML.SubElement(artifactory, 'envVarsPatterns')
+    XML.SubElement(details, 'includePatterns').text = data.get('env-include-patterns', '')
+    XML.SubElement(details, 'excludePatterns').text = data.get('env-exclude-patterns', '*password*,*secret*')
+
+    XML.SubElement(details, 'discardOldBuilds').text = str(data.get('discard-old-builds', False)).lower()
+    XML.SubElement(details, 'discardBuildArtifacts').text = str(data.get('discard-build-artifacts', True)).lower()
+    XML.SubElement(details, 'multiConfProject').text = str(data.get('multi-conf-project', False)).lower()
+
     
 
 class Wrappers(jenkins_jobs.modules.base.Base):
