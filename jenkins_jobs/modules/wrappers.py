@@ -1278,19 +1278,19 @@ def generic_artifactory(parser, xml_parent, data):
     XML.SubElement(details, 'snapshotsRepositoryKey').text = data['repo-key']
 
     # optional
-    XML.SubElement(details, 'deployPattern').text = data.get('deploy-pattern', '')
-    XML.SubElement(details, 'resolvePattern').text = data.get('resolve-pattern', '')
-    XML.SubElement(details, 'matrixParams').text = data.get('matric-params', '')
-    XML.SubElement(details, 'deployBuildInfo').text = str(data.get('deploy-build-info', False)).lower()
-    XML.SubElement(details, 'includeEnvVars').text = str(data.get('include-env-vars', False)).lower()
+    XML.SubElement(artifactory, 'deployPattern').text = data.get('deploy-pattern', '')
+    XML.SubElement(artifactory, 'resolvePattern').text = data.get('resolve-pattern', '')
+    XML.SubElement(artifactory, 'matrixParams').text = data.get('matric-params', '')
+    XML.SubElement(artifactory, 'deployBuildInfo').text = str(data.get('deploy-build-info', False)).lower()
+    XML.SubElement(artifactory, 'includeEnvVars').text = str(data.get('include-env-vars', False)).lower()
 
     details = XML.SubElement(artifactory, 'envVarsPatterns')
     XML.SubElement(details, 'includePatterns').text = data.get('env-include-patterns', '')
     XML.SubElement(details, 'excludePatterns').text = data.get('env-exclude-patterns', '*password*,*secret*')
 
-    XML.SubElement(details, 'discardOldBuilds').text = str(data.get('discard-old-builds', False)).lower()
-    XML.SubElement(details, 'discardBuildArtifacts').text = str(data.get('discard-build-artifacts', True)).lower()
-    XML.SubElement(details, 'multiConfProject').text = str(data.get('multi-conf-project', False)).lower()
+    XML.SubElement(artifactory, 'discardOldBuilds').text = str(data.get('discard-old-builds', False)).lower()
+    XML.SubElement(artifactory, 'discardBuildArtifacts').text = str(data.get('discard-build-artifacts', True)).lower()
+    XML.SubElement(artifactory, 'multiConfProject').text = str(data.get('multi-conf-project', False)).lower()
 
     
 
