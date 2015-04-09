@@ -45,6 +45,7 @@ in the :ref:`Job` definition.
       It is possible to provide a ConfigFileProvider settings file as well
       org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig
       0123456789012 (optional)
+    * **jdk** (`str`): The JDK Version to use
 
 Example:
 
@@ -103,6 +104,12 @@ class Maven(jenkins_jobs.modules.base.Base):
         maven_name = data['maven'].get('maven-name')
         if maven_name:
             XML.SubElement(xml_parent, 'mavenName').text = maven_name
+
+
+        jdk = data['maven'].get('jdk')
+        if jdk:
+            XML.SubElement(xml_parent, 'jdk').text = jdk
+
 
         private_repo = data['maven'].get('private-repository')
         if private_repo:
