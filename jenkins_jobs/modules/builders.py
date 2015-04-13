@@ -713,27 +713,14 @@ def system_groovy(parser, xml_parent, data):
        :language: yaml
     .. literalinclude:: ../../tests/builders/fixtures/system-groovy002.yaml
        :language: yaml
-    builders:
-      - system-groovy: |
-          import hudson.model.*
-          jenkins = jenkins.model.Jenkins.instance;
-          build = Thread.currentThread().executable
-          build_number = build.getNumber()
-          build.setDisplayName("#$build_number example")
-
     """
 
-    groovy = XML.SubElement(xml_parent, 'hudson.plugins.groovy.SystemGroovy')
-    source = XML.SubElement(groovy, 'scriptSource')
-
-    if 'command' in data:
-        source.set('class', 'hudson.plugins.groovy.StringScriptSource')
-        XML.SubElement(source, 'command').text = data.get('command', '')
-    elif 'file' in data:
-        source.set('class', 'hudson.plugins.groovy.FileScriptSource')
-        XML.SubElement(source, 'scriptFile').text = data.get('file', '')
-    XML.SubElement(groovy, 'bindings').text = data.get('bindings' ,'')
-    XML.SubElement(groovy, 'classpath').text = data.get('classpath', '')
+    root_tag = 'hudson.plugins.groovy.SystemGroovy'
+    sysgroovy = XML.SubElement(xml_parent, root_tag)
+    sysgroovy.append(_groovy_common_scriptSource(data))
+    XML.SubElement(sysgroovy, 'bindings').text = str(data.get('bindings', ""))
+    XML.SubElement(sysgroovy, 'classpath').text = \
+        str(data.get('class-path', ""))
 
 
 def batch(parser, xml_parent, data):
@@ -1510,4 +1497,3 @@ def managed_script(parser, xml_parent, data):
     args = XML.SubElement(ms, 'buildStepArgs')
     for arg in data.get('args', []):
         XML.SubElement(args, 'string').text = arg
-
