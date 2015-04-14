@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2013 eNovance SAS <licensing@enovance.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,20 +19,34 @@ The flow Project module handles creating Jenkins flow projects.
 You may specify ``flow`` in the ``project-type`` attribute of
 the :ref:`Job` definition.
 
-Requires the Jenkins `Build Flow Plugin.
-<https://wiki.jenkins-ci.org/display/JENKINS/Build+Flow+Plugin>`_
+Requires the Jenkins :jenkins-wiki:`Build Flow Plugin <Build+Flow+Plugin>`.
 
-Example::
+In order to use it for job-template you have to escape the curly braces by
+doubling them in the DSL: { -> {{ , otherwise it will be interpreted by the
+python str.format() command.
 
-  job:
-    name: test_job
-    project-type: flow
-    dsl: |
-      build("job1")
-      parallel (
-        { build("job2a") },
-        { build("job2b") }
-      )
+:Job Parameters:
+    * **dsl** (`str`): The DSL content. (optional)
+    * **needs-workspace** (`bool`): This build needs a workspace. \
+    (default false)
+    * **dsl-file** (`str`): Path to the DSL script in the workspace. \
+    Has effect only when `needs-workspace` is true. (optional)
+
+Job example:
+
+    .. literalinclude::
+      /../../tests/yamlparser/fixtures/project_flow_template001.yaml
+
+Job template example:
+
+    .. literalinclude::
+      /../../tests/yamlparser/fixtures/project_flow_template002.yaml
+
+Job example runninng a DSL file from the workspace:
+
+    .. literalinclude::
+      /../../tests/yamlparser/fixtures/project_flow_template003.yaml
+
 """
 
 import xml.etree.ElementTree as XML
@@ -48,4 +63,12 @@ class Flow(jenkins_jobs.modules.base.Base):
         else:
             XML.SubElement(xml_parent, 'dsl').text = ''
 
+        needs_workspace = data.get('needs-workspace', False)
+        XML.SubElement(xml_parent, 'buildNeedsWorkspace').text = str(
+            needs_workspace).lower()
+
+        if needs_workspace and 'dsl-file' in data:
+            XML.SubElement(xml_parent, 'dslFile').text = data['dsl-file']
+
         return xml_parent
+
