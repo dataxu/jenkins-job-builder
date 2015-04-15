@@ -118,7 +118,7 @@ class Maven(jenkins_jobs.modules.base.Base):
 
         XML.SubElement(xml_parent, 'rootPOM').text = \
             data['maven'].get('root-pom', 'pom.xml')
-        XML.SubElement(xml_parent, 'aggregatorStyleBuild').text = data['maven'].get('aggregator-style', 'true'))
+        XML.SubElement(xml_parent, 'aggregatorStyleBuild').text = data['maven'].get('aggregator-style', 'true')
         XML.SubElement(xml_parent, 'incrementalBuild').text = 'false'
         XML.SubElement(xml_parent, 'perModuleEmail').text = 'true'
         XML.SubElement(xml_parent, 'archivingDisabled').text = str(
