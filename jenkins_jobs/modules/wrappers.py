@@ -1440,6 +1440,45 @@ def artifactory(parser, xml_parent, data):
             data.get('release-repo-key', '')
 
 
+def artifactory_maven3(parser, xml_parent, data):
+    """ yaml: artifactory
+    Wrapper for Free Stype projects. Requires the Artifactory plugin.
+
+    :arg str url: URL of the Artifactory server. e.g.
+        http://my.artifactory.com/artifactory (default: '')
+    :arg str name: Artifactory user with permissions use for
+        connected to the selected Artifactory Server
+        (default '')
+    :arg str repo-key: Name of the repository to search for
+        artifact dependencies (default: '')
+    :arg str release-repo-key: Release repository name (default '')
+    :arg str snapshot-repo-key: Snapshots repository name (default '')
+
+    Example:
+
+    .. literalinclude:: /../../tests/wrappers/fixtures/artifactory003.yaml
+       :language: yaml
+
+    """
+
+    artifactory = XML.SubElement(
+        xml_parent,
+        'org.jfrog.hudson.maven3.ArtifactoryMaven3Configurator')
+
+    # details
+    details = XML.SubElement(artifactory, 'details')
+    XML.SubElement(details, 'artifactoryUrl').text = data.get('url', '')
+    XML.SubElement(details, 'artifactoryName').text = data.get('name', '')
+    if 'repo-key' in data:
+        XML.SubElement(details, 'downloadRepositoryKey').text = \
+            data['repo-key']
+    else:
+        XML.SubElement(details, 'downloadSnapshotRepositoryKey').text = \
+            data.get('snapshot-repo-key', '')
+        XML.SubElement(details, 'downloadReleaseRepositoryKey').text = \
+            data.get('release-repo-key', '')
+
+
 def generic_artifactory(parser, xml_parent, data):
     """ yaml: generic-artifactory
     Wrapper for non-Maven projects. Requires the Artifactory plugin.
