@@ -1599,11 +1599,11 @@ def artifactory_maven3(parser, xml_parent, data):
     XML.SubElement(details, 'artifactoryName').text = data.get('name', '')
 
     deploy_release = XML.SubElement(details, 'deployReleaseRepository')
-    XML.SubElement(deploy_release, 'keyFromText').text = \
+    XML.SubElement(deploy_release, 'keyFromSelect').text = \
         data.get('release-repo-key', '')
 
     deploy_snapshot = XML.SubElement(details, 'deploySnapshotRepository')
-    XML.SubElement(deploy_snapshot, 'keyFromText').text = \
+    XML.SubElement(deploy_snapshot, 'keyFromSelect').text = \
         data.get('snapshot-repo-key', '')
 
     if 'repo-key' in data:
