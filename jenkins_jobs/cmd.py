@@ -133,6 +133,9 @@ def create_parser():
                          'including those not managed by Jenkins Job '
                          'Builder.')
     parser.add_argument('--conf', dest='conf', help='configuration file')
+    parser.add_argument('-f', '--folder', dest='folder',
+                        help='manage job in specified folder. '
+                        'Examples: -f "FOLDER" or -f "FOLDER1/FOLDER2"')
     parser.add_argument('-l', '--log_level', dest='log_level', default='info',
                         help="log level (default: %(default)s)")
     parser.add_argument(
@@ -249,7 +252,12 @@ def execute(options, config):
                    'allow_empty_variables',
                    str(options.allow_empty_variables))
 
-    builder = Builder(config.get('jenkins', 'url'),
+    jenkins_url = config.get('jenkins', 'url')
+    if options.folder:
+        jenkins_url = "%s/job/%s" % (jenkins_url,
+                                     options.folder.replace('/', '/job/'))
+
+    builder = Builder(jenkins_url,
                       user,
                       password,
                       config,
