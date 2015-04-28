@@ -1454,23 +1454,17 @@ def artifactory_maven3(parser, xml_parent, data):
     :arg bool publish-build-info: Push build metadata with artifacts
         (default False)
     :arg bool discard-old-builds:
-        Remove older build info from Artifactory (default False)
+        Remove older build info from Artifactory (default True)
     :arg bool discard-build-artifacts:
         Remove older build artifacts from Artifactory (default False)
     :arg bool include-env-vars: Include all environment variables
         accessible by the build process. Jenkins-specific env variables
         are always included (default False)
-    :arg bool even-if-unstable: Deploy artifacts even when the build
-        is unstable (default False)
     :arg bool run-checks: Run automatic license scanning check after the
         build is complete (default False)
     :arg bool include-publish-artifacts: Include the build's published
         module artifacts in the license violation checks if they are
         also used as dependencies for other modules in this build
-        (default False)
-    :arg bool pass-identified-downstream: When true, a build parameter
-        named ARTIFACTORY_BUILD_ROOT with a value of
-        ${JOB_NAME}-${BUILD_NUMBER} will be sent to downstream builds
         (default False)
     :arg bool license-auto-discovery: Tells Artifactory not to try
         and automatically analyze and tag the build's dependencies
@@ -1483,9 +1477,6 @@ def artifactory_maven3(parser, xml_parent, data):
         is enabled, include all issues from previous builds up to the
         latest build status defined in "Aggregation Build Status"
         (default False)
-    :arg bool allow-promotion-of-non-staged-builds: The build
-        promotion operation will be available to all successful builds
-        instead of only staged ones (default False)
     :arg bool filter-excluded-artifacts-from-build: Add the excluded
         files to the excludedArtifacts list and remove them from the
         artifacts list in the build info (default False)
@@ -1551,19 +1542,15 @@ def artifactory_maven3(parser, xml_parent, data):
         # xml property name, yaml property name, default value
         ('deployArtifacts', 'deploy-artifacts', True),
         ('discardOldBuilds', 'discard-old-builds', False),
-        ('discardBuildArtifacts', 'discard-build-artifacts', False),
+        ('discardBuildArtifacts', 'discard-build-artifacts', True),
         ('deployBuildInfo', 'publish-build-info', False),
         ('includeEnvVars', 'include-env-vars', False),
-        ('evenIfUnstable', 'even-if-unstable', False),
         ('runChecks', 'run-checks', False),
         ('includePublishArtifacts', 'include-publish-artifacts', False),
-        ('passIdentifiedDownstream', 'pass-identified-downstream', False),
         ('licenseAutoDiscovery', 'license-auto-discovery', True),
         ('enableIssueTrackerIntegration', 'enable-issue-tracker-integration',
             False),
         ('aggregateBuildIssues', 'aggregate-build-issues', False),
-        ('allowPromotionOfNonStagedBuilds',
-            'allow-promotion-of-non-staged-builds', False),
         ('blackDuckRunChecks', 'black-duck-run-checks', False),
         ('blackDuckIncludePublishedArtifacts',
             'black-duck-include-published-artifacts', False),
@@ -1571,6 +1558,10 @@ def artifactory_maven3(parser, xml_parent, data):
             'auto-create-missing-component-requests', True),
         ('autoDiscardStaleComponentRequests',
             'auto-discard-stale-component-requests', True),
+        ('disableLicenseAutoDiscovery',
+            'disable-license-auto-discovery', False),
+        ('recordAllDependencies',
+            'record-all-dependencies', False),
         ('filterExcludedArtifactsFromBuild',
             'filter-excluded-artifacts-from-build', False)
     ]
@@ -1593,18 +1584,33 @@ def artifactory_maven3(parser, xml_parent, data):
         XML.SubElement(artifactory, xml_prop).text = data.get(
             yaml_prop, '')
 
+    env = XML.SubElement(artifactory, 'envVarsPatterns')
+    XML.SubElement(env, 'includePatterns').text = \
+        data.get('env-include-patterns', '')
+    XML.SubElement(env, 'excludePatterns').text = \
+        data.get('env-exclude-patterns', '*password*,*secret*')
+
     # details
     details = XML.SubElement(artifactory, 'details')
-    XML.SubElement(details, 'artifactoryUrl').text = data.get('url', '')
     XML.SubElement(details, 'artifactoryName').text = data.get('name', '')
+    XML.SubElement(details, 'artifactoryUrl').text = data.get('url', '')
 
     deploy_release = XML.SubElement(details, 'deployReleaseRepository')
+    XML.SubElement(deploy_release, 'keyFromText').text = ''
     XML.SubElement(deploy_release, 'keyFromSelect').text = \
         data.get('release-repo-key', '')
+    XML.SubElement(deploy_release, 'dynamicMode').text = False
 
     deploy_snapshot = XML.SubElement(details, 'deploySnapshotRepository')
+    XML.SubElement(deploy_snapshot, 'keyFromText').text = ''
     XML.SubElement(deploy_snapshot, 'keyFromSelect').text = \
         data.get('snapshot-repo-key', '')
+    XML.SubElement(deploy_snapshot, 'dynamicMode').text = False
+
+    XML.SubElement(details, 'deploySnapshotRepository').text = \
+        data.get('deploy-snapshot-repository', '')
+    XML.SubElement(details, 'stagingPlugin').text = \
+        data.get('staging-plugin', '')
 
     if 'repo-key' in data:
         XML.SubElement(details, 'downloadRepositoryKey').text = \
