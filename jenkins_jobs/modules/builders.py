@@ -1103,8 +1103,8 @@ def maven_builder(parser, xml_parent, data):
     maven = XML.SubElement(xml_parent, 'org.jfrog.hudson.maven3.Maven3Builder')
     XML.SubElement(maven, 'mavenName').text = data['name']
     XML.SubElement(maven, 'rootPom').text = data.get('pom', 'pom.xml')
-    XML.SubElement(maven, 'goals').text = data['goals']
-    XML.SubElement(maven, 'mavenOpts').text = data['maven-opts']
+    XML.SubElement(maven, 'goals').text = data('goals', '')
+    XML.SubElement(maven, 'mavenOpts').text = data('maven-opts', '')
 
 
 def maven_target(parser, xml_parent, data):
