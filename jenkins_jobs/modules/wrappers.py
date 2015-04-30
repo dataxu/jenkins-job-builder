@@ -1558,10 +1558,21 @@ def artifactory_maven3(parser, xml_parent, data):
     XML.SubElement(deploy_snapshot, 'dynamicMode').text = \
         str(data.get('deploy-dynamic-mode', False)).lower()
 
+    XML.SubElement(details, 'stagingPlugin').text = \
+        data.get('resolve-staging-plugin', '')
+
     # resolverDetails
     resolver = XML.SubElement(artifactory, 'resolverDetails')
     XML.SubElement(resolver, 'artifactoryName').text = data.get('name', '')
     XML.SubElement(resolver, 'artifactoryUrl').text = data.get('url', '')
+
+    resolve_snapshot = XML.SubElement(resolver, 'resolveSnapshotRepository')
+    XML.SubElement(resolve_snapshot, 'keyFromText').text = \
+        data.get('resolve-snapshot-repo-key', '')
+    XML.SubElement(resolve_snapshot, 'keyFromSelect').text = \
+        data.get('resolve-snapshot-repo-key', '')
+    XML.SubElement(resolve_snapshot, 'dynamicMode').text = \
+        str(data.get('resolve-dynamic-mode', False)).lower()
 
     deploy_release = XML.SubElement(resolver, 'resolveReleaseRepository')
     XML.SubElement(deploy_release, 'keyFromText').text = \
@@ -1571,13 +1582,6 @@ def artifactory_maven3(parser, xml_parent, data):
     XML.SubElement(deploy_release, 'dynamicMode').text = \
         str(data.get('resolve-dynamic-mode', False)).lower()
 
-    deploy_snapshot = XML.SubElement(resolver, 'resolveSnapshotRepository')
-    XML.SubElement(deploy_snapshot, 'keyFromText').text = \
-        data.get('resolve-snapshot-repo-key', '')
-    XML.SubElement(deploy_snapshot, 'keyFromSelect').text = \
-        data.get('resolve-snapshot-repo-key', '')
-    XML.SubElement(deploy_snapshot, 'dynamicMode').text = \
-        str(data.get('resolve-dynamic-mode', False)).lower()
     XML.SubElement(resolver, 'stagingPlugin').text = \
         data.get('resolve-staging-plugin', '')
 
