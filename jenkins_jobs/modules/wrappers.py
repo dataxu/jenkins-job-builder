@@ -1544,17 +1544,17 @@ def artifactory_maven3(parser, xml_parent, data):
 
     deploy_release = XML.SubElement(details, 'deployReleaseRepository')
     XML.SubElement(deploy_release, 'keyFromText').text = \
-        data.get('deploy-release-repo-key-text', '')
+        data.get('deploy-release-repo-key', '')
     XML.SubElement(deploy_release, 'keyFromSelect').text = \
-        data.get('deploy-release-repo-key-select', '')
+        data.get('deploy-release-repo-key', '')
     XML.SubElement(deploy_release, 'dynamicMode').text = \
         str(data.get('deploy-dynamic-mode', False)).lower()
 
     deploy_snapshot = XML.SubElement(details, 'deploySnapshotRepository')
     XML.SubElement(deploy_snapshot, 'keyFromText').text = \
-        data.get('deploy-snapshot-repo-key-text', '')
+        data.get('deploy-snapshot-repo-key', '')
     XML.SubElement(deploy_snapshot, 'keyFromSelect').text = \
-        data.get('deploy-snapshot-repo-key-select', '')
+        data.get('deploy-snapshot-repo-key', '')
     XML.SubElement(deploy_snapshot, 'dynamicMode').text = \
         str(data.get('deploy-dynamic-mode', False)).lower()
 
