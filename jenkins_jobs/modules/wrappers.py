@@ -1537,6 +1537,56 @@ def artifactory_maven3(parser, xml_parent, data):
         xml_parent,
         'org.jfrog.hudson.maven3.ArtifactoryMaven3Configurator')
 
+    # details
+    details = XML.SubElement(artifactory, 'details')
+    XML.SubElement(details, 'artifactoryName').text = data.get('name', '')
+    XML.SubElement(details, 'artifactoryUrl').text = data.get('url', '')
+
+    deploy_release = XML.SubElement(details, 'deployReleaseRepository')
+    XML.SubElement(deploy_release, 'keyFromText').text = \
+        data.get('deploy-release-repo-key-text', '')
+    XML.SubElement(deploy_release, 'keyFromSelect').text = \
+        data.get('deploy-release-repo-key-select', '')
+    XML.SubElement(deploy_release, 'dynamicMode').text = \
+        str(data.get('deploy-dynamic-mode', False)).lower()
+
+    deploy_snapshot = XML.SubElement(details, 'deploySnapshotRepository')
+    XML.SubElement(deploy_snapshot, 'keyFromText').text = \
+        data.get('deploy-snapshot-repo-key-text', '')
+    XML.SubElement(deploy_snapshot, 'keyFromSelect').text = \
+        data.get('deploy-snapshot-repo-key-select', '')
+    XML.SubElement(deploy_snapshot, 'dynamicMode').text = \
+        str(data.get('deploy-dynamic-mode', False)).lower()
+
+    # resolverDetails
+    resolver = XML.SubElement(artifactory, 'resolverDetails')
+    XML.SubElement(resolver, 'artifactoryName').text = data.get('name', '')
+    XML.SubElement(resolver, 'artifactoryUrl').text = data.get('url', '')
+
+    deploy_release = XML.SubElement(resolver, 'resolveReleaseRepository')
+    XML.SubElement(deploy_release, 'keyFromText').text = \
+        data.get('resolve-release-repo-key-text', '')
+    XML.SubElement(deploy_release, 'keyFromSelect').text = \
+        data.get('resolve-release-repo-key-select', '')
+    XML.SubElement(deploy_release, 'dynamicMode').text = \
+        str(data.get('resolve-dynamic-mode', False)).lower()
+
+    deploy_snapshot = XML.SubElement(resolver, 'resolveSnapshotRepository')
+    XML.SubElement(deploy_snapshot, 'keyFromText').text = \
+        data.get('resolve-snapshot-repo-key', '')
+    XML.SubElement(deploy_snapshot, 'keyFromSelect').text = \
+        data.get('resolve-snapshot-repo-key', '')
+    XML.SubElement(deploy_snapshot, 'dynamicMode').text = \
+        str(data.get('resolve-dynamic-mode', False)).lower()
+    XML.SubElement(resolver, 'stagingPlugin').text = \
+        data.get('resolve-staging-plugin', '')
+
+    # artifactDeploymentPatterns
+    deployment_patterns = XML.SubElement(artifactory, 'artifactDeploymentPatterns')
+    XML.SubElement(deployment_patterns, 'includePatterns').text = \
+        data.get('deployment-include-patterns', '')
+    XML.SubElement(deployment_patterns, 'excludePatterns').text = \
+        data.get('deployment-exclude-patterns', '')
 
     optional_bool_props = [
         # xml property name, yaml property name, default value
@@ -1591,49 +1641,6 @@ def artifactory_maven3(parser, xml_parent, data):
         data.get('env-include-patterns', '')
     XML.SubElement(env, 'excludePatterns').text = \
         data.get('env-exclude-patterns', '*password*,*secret*')
-
-    # details
-    details = XML.SubElement(artifactory, 'details')
-    XML.SubElement(details, 'artifactoryName').text = data.get('name', '')
-    XML.SubElement(details, 'artifactoryUrl').text = data.get('url', '')
-
-    deploy_release = XML.SubElement(details, 'deployReleaseRepository')
-    XML.SubElement(deploy_release, 'keyFromText').text = \
-        data.get('release-repo-key', '')
-    XML.SubElement(deploy_release, 'keyFromSelect').text = \
-        data.get('release-repo-key', '')
-    XML.SubElement(deploy_release, 'dynamicMode').text = str(False).lower()
-
-    deploy_snapshot = XML.SubElement(details, 'deploySnapshotRepository')
-    XML.SubElement(deploy_snapshot, 'keyFromText').text = \
-        data.get('snapshot-repo-key', '')
-    XML.SubElement(deploy_snapshot, 'keyFromSelect').text = \
-        data.get('snapshot-repo-key', '')
-    XML.SubElement(deploy_snapshot, 'dynamicMode').text = str(False).lower()
-
-    # resolverDetails
-    resolver = XML.SubElement(artifactory, 'resolverDetails')
-    XML.SubElement(resolver, 'artifactoryName').text = data.get('name', '')
-    XML.SubElement(resolver, 'artifactoryUrl').text = data.get('url', '')
-
-    deploy_release = XML.SubElement(resolver, 'deployReleaseRepository')
-    XML.SubElement(deploy_release, 'keyFromText').text = \
-        data.get('release-repo-key', '')
-    XML.SubElement(deploy_release, 'keyFromSelect').text = \
-        data.get('release-repo-key', '')
-    XML.SubElement(deploy_release, 'dynamicMode').text = str(False).lower()
-
-    deploy_snapshot = XML.SubElement(resolver, 'deploySnapshotRepository')
-    XML.SubElement(deploy_snapshot, 'keyFromText').text = \
-        data.get('snapshot-repo-key', '')
-    XML.SubElement(deploy_snapshot, 'keyFromSelect').text = \
-        data.get('snapshot-repo-key', '')
-    XML.SubElement(deploy_snapshot, 'dynamicMode').text = str(False).lower()
-
-    # artifactDeploymentPatterns
-    deployment_patterns = XML.SubElement(artifactory, 'artifactDeploymentPatterns')
-    XML.SubElement(deployment_patterns, 'includePatterns').text = data.get('deployment-include-patterns', '')
-    XML.SubElement(deployment_patterns, 'excludePatterns').text = data.get('deployment-exclude-patterns', '')
 
 
 def generic_artifactory(parser, xml_parent, data):
