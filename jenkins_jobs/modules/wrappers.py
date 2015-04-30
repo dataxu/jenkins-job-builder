@@ -1550,6 +1550,8 @@ def artifactory_maven3(parser, xml_parent, data):
         ('licenseAutoDiscovery', 'license-auto-discovery', True),
         ('enableIssueTrackerIntegration', 'enable-issue-tracker-integration',
             False),
+        ('enableResolveArtifacts', 'enable-resolve-artifacts',
+            False),
         ('aggregateBuildIssues', 'aggregate-build-issues', False),
         ('blackDuckRunChecks', 'black-duck-run-checks', False),
         ('blackDuckIncludePublishedArtifacts',
@@ -1596,30 +1598,42 @@ def artifactory_maven3(parser, xml_parent, data):
     XML.SubElement(details, 'artifactoryUrl').text = data.get('url', '')
 
     deploy_release = XML.SubElement(details, 'deployReleaseRepository')
-    XML.SubElement(deploy_release, 'keyFromText').text = ''
+    XML.SubElement(deploy_release, 'keyFromText').text = \
+        data.get('release-repo-key', '')
     XML.SubElement(deploy_release, 'keyFromSelect').text = \
         data.get('release-repo-key', '')
-    XML.SubElement(deploy_release, 'dynamicMode').text = False
+    XML.SubElement(deploy_release, 'dynamicMode').text = str(False).lower()
 
     deploy_snapshot = XML.SubElement(details, 'deploySnapshotRepository')
-    XML.SubElement(deploy_snapshot, 'keyFromText').text = ''
+    XML.SubElement(deploy_snapshot, 'keyFromText').text = \
+        data.get('snapshot-repo-key', '')
     XML.SubElement(deploy_snapshot, 'keyFromSelect').text = \
         data.get('snapshot-repo-key', '')
-    XML.SubElement(deploy_snapshot, 'dynamicMode').text = False
+    XML.SubElement(deploy_snapshot, 'dynamicMode').text = str(False).lower()
 
-    XML.SubElement(details, 'deploySnapshotRepository').text = \
-        data.get('deploy-snapshot-repository', '')
-    XML.SubElement(details, 'stagingPlugin').text = \
-        data.get('staging-plugin', '')
+    # resolverDetails
+    resolver = XML.SubElement(artifactory, 'resolverDetails')
+    XML.SubElement(resolver, 'artifactoryName').text = data.get('name', '')
+    XML.SubElement(resolver, 'artifactoryUrl').text = data.get('url', '')
 
-    if 'repo-key' in data:
-        XML.SubElement(details, 'downloadRepositoryKey').text = \
-            data['repo-key']
-    else:
-        XML.SubElement(details, 'downloadSnapshotRepositoryKey').text = \
-            data.get('snapshot-repo-key', '')
-        XML.SubElement(details, 'downloadReleaseRepositoryKey').text = \
-            data.get('release-repo-key', '')
+    deploy_release = XML.SubElement(resolver, 'deployReleaseRepository')
+    XML.SubElement(deploy_release, 'keyFromText').text = \
+        data.get('release-repo-key', '')
+    XML.SubElement(deploy_release, 'keyFromSelect').text = \
+        data.get('release-repo-key', '')
+    XML.SubElement(deploy_release, 'dynamicMode').text = str(False).lower()
+
+    deploy_snapshot = XML.SubElement(resolver, 'deploySnapshotRepository')
+    XML.SubElement(deploy_snapshot, 'keyFromText').text = \
+        data.get('snapshot-repo-key', '')
+    XML.SubElement(deploy_snapshot, 'keyFromSelect').text = \
+        data.get('snapshot-repo-key', '')
+    XML.SubElement(deploy_snapshot, 'dynamicMode').text = str(False).lower()
+
+    # artifactDeploymentPatterns
+    deployment_patterns = XML.SubElement(artifactory, 'artifactDeploymentPatterns')
+    XML.SubElement(deployment_patterns, 'includePatterns').text = data.get('deployment-include-patterns', '')
+    XML.SubElement(deployment_patterns, 'excludePatterns').text = data.get('deployment-exclude-patterns', '')
 
 
 def generic_artifactory(parser, xml_parent, data):
