@@ -433,6 +433,8 @@ def build_name(parser, xml_parent, data):
     :arg str name: Name for the build.  Typically you would use a variable
                    from Jenkins in the name.  The syntax would be ${FOO} for
                    the FOO variable.
+    :arg bool run-at-start: Should the name be set at the start of the build job (default)
+    :arg bool run-at-end: Should the name be set at the end of the build job
 
     Example::
 
@@ -444,6 +446,8 @@ def build_name(parser, xml_parent, data):
                              'org.jenkinsci.plugins.buildnamesetter.'
                              'BuildNameSetter')
     XML.SubElement(bsetter, 'template').text = data['name']
+    XML.SubElement(bsetter, 'runAtStart').text = str(data.get('run-at-start', True)).lower()
+    XML.SubElement(bsetter, 'runAtEnd').text = str(data.get('run-at-end', False)).lower()
 
 
 def port_allocator(parser, xml_parent, data):
