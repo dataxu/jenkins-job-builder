@@ -1532,9 +1532,8 @@ def sonar(parser, xml_parent, data):
       wrappers:
         - sonar
     """
-    p = XML.SubElement(xml_parent,
+    XML.SubElement(xml_parent,
                    'hudson.plugins.sonar.SonarBuildWrapper')
-    p.set("plugin", "sonar@2.4")
 
 
 class Wrappers(jenkins_jobs.modules.base.Base):
