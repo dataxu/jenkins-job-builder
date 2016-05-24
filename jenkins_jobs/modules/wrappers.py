@@ -1521,6 +1521,22 @@ def generic_artifactory(parser, xml_parent, data):
         str(data.get('discard-build-artifacts', True)).lower()
 
 
+def sonar(parser, xml_parent, data):
+    """yaml: Sonar Prepare
+    Collect sonar information from configuration tab and make available via
+    envinonment variables.
+    Requires the Jenkins `Sonar Plugin.
+    <http://docs.codehaus.org/pages/viewpage.action?pageId=116359341>`_
+
+    Example::
+
+      wrappers:
+        - sonar
+    """
+    XML.SubElement(xml_parent,
+                   'hudson.plugins.sonar.SonarBuildWrapper')
+
+
 class Wrappers(jenkins_jobs.modules.base.Base):
     sequence = 80
 
