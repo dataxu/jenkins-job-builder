@@ -35,7 +35,10 @@ from jenkins_jobs.modules.helpers import cloudformation_region_dict
 from jenkins_jobs.modules.helpers import cloudformation_stack
 from jenkins_jobs.modules.helpers import config_file_provider_settings
 from jenkins_jobs.modules.helpers import findbugs_settings
+<<<<<<< HEAD
 from jenkins_jobs.modules.helpers import get_value_from_yaml_or_config_file
+=======
+>>>>>>> f90a819af3475da0429b99e1a3518a2df87b6dff
 from jenkins_jobs.modules.helpers import artifactory_deployment_patterns
 from jenkins_jobs.modules.helpers import artifactory_env_vars_patterns
 from jenkins_jobs.modules.helpers import artifactory_optional_props
@@ -2479,19 +2482,34 @@ def artifactory(parser, xml_parent, data):
     Artifactory Server.
 
     Requires the Jenkins `Artifactory Plugin.
+<<<<<<< HEAD
     :jenkins-wiki: `Artifactory Plugin <Artifactory+Plugin>`.
+=======
+    <https://wiki.jenkins-ci.org/display/JENKINS/Artifactory+Plugin>`_
+>>>>>>> f90a819af3475da0429b99e1a3518a2df87b6dff
 
     :arg str url: Artifactory server url (default '')
     :arg str name: Artifactory user with permissions use for
         connected to the selected Artifactory Server (default '')
     :arg str release-repo-key: Release repository name (default '')
     :arg str snapshot-repo-key: Snapshots repository name (default '')
+<<<<<<< HEAD
+=======
+    :arg bool deploy-artifacts: Push artifacts to the Artifactory
+        Server (default True)
+>>>>>>> f90a819af3475da0429b99e1a3518a2df87b6dff
     :arg bool publish-build-info: Push build metadata with artifacts
         (default False)
     :arg bool discard-old-builds:
         Remove older build info from Artifactory (default False)
     :arg bool discard-build-artifacts:
         Remove older build artifacts from Artifactory (default False)
+<<<<<<< HEAD
+=======
+    :arg bool include-env-vars: Include all environment variables
+        accessible by the build process. Jenkins-specific env variables
+        are always included (default False)
+>>>>>>> f90a819af3475da0429b99e1a3518a2df87b6dff
     :arg bool even-if-unstable: Deploy artifacts even when the build
         is unstable (default False)
     :arg bool run-checks: Run automatic license scanning check after the
@@ -2554,6 +2572,7 @@ def artifactory(parser, xml_parent, data):
         stale components in Black Duck Code Center application after
         the build is completed and deployed in Artifactory
         (default True)
+<<<<<<< HEAD
     :arg bool deploy-artifacts: Push artifacts to the Artifactory
         Server. Use deployment-include-patterns and
         deployment-exclude-patterns to filter deploy artifacts. (default True)
@@ -2581,6 +2600,25 @@ def artifactory(parser, xml_parent, data):
 
     .. literalinclude:: /../../tests/publishers/fixtures/artifactory02.yaml
 
+=======
+    :arg list include-deployment-pattern: New line or comma separated mappings
+        of build artifacts to published artifacts. Supports Ant-style wildcards
+        mapping to target directories. E.g.: */*.zip=>dir (default [])
+    :arg list exclude-deployment-pattern: New line or comma separated patterns
+        for excluding artifacts from deployment to Artifactory (default [])
+    :arg list include-env-var-pattern: Comma or space-separated list of
+        environment variables that will be included as part of the published
+        build info. Environment variables may contain the * and the ? wildcards
+        (default [])
+    :arg list exclude-env-var-pattern: Comma or space-separated list of
+        environment variables that will be excluded from the published
+        build info (default ['*password*', '*secret*'])
+
+    Example::
+
+    .. literalinclude:: /../../tests/publishers/fixtures/artifactory01.yaml
+
+>>>>>>> f90a819af3475da0429b99e1a3518a2df87b6dff
     """
 
     artifactory = XML.SubElement(

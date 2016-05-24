@@ -38,11 +38,19 @@
       </details>
       <artifactDeploymentPatterns>
         <includePatterns/>
+<<<<<<< HEAD
         <excludePatterns/>
       </artifactDeploymentPatterns>
       <envVarsPatterns>
         <includePatterns/>
         <excludePatterns/>
+=======
+        <excludePatterns>*password*,*secret*</excludePatterns>
+      </artifactDeploymentPatterns>
+      <envVarsPatterns>
+        <includePatterns/>
+        <excludePatterns>*password*,*secret*</excludePatterns>
+>>>>>>> f90a819af3475da0429b99e1a3518a2df87b6dff
       </envVarsPatterns>
     </org.jfrog.hudson.ArtifactoryRedeployPublisher>
   </publishers>

@@ -1566,6 +1566,7 @@ def xvfb(parser, xml_parent, data):
         'shutdown-with-build', False)).lower()
 
 
+<<<<<<< HEAD
 def android_emulator(parser, xml_parent, data):
     """yaml: android-emulator
     Automates many Android development tasks including SDK installation,
@@ -1656,6 +1657,12 @@ def artifactory_maven(parser, xml_parent, data):
     """ yaml: artifactory-maven
     Wrapper for non-Maven projects. Requires the
     :jenkins-wiki:`Artifactory Plugin <Artifactory+Plugin>`
+=======
+def artifactory_maven(parser, xml_parent, data):
+    """ yaml: artifactory-maven
+    Wrapper for Maven projects. Requires the Artifactory plugin.
+    Requires :jenkins-wiki:`Artifactory Plugin <Artifactory+Plugin>`
+>>>>>>> f90a819af3475da0429b99e1a3518a2df87b6dff
 
     :arg str url: URL of the Artifactory server. e.g.
         http://www.jfrog.com/artifactory/ (default '')
@@ -1699,8 +1706,13 @@ def artifactory_maven(parser, xml_parent, data):
 
 def artifactory_generic(parser, xml_parent, data):
     """ yaml: artifactory-generic
+<<<<<<< HEAD
     Wrapper for non-Maven projects. Requires the
     :jenkins-wiki:`Artifactory Plugin <Artifactory+Plugin>`
+=======
+    Wrapper for non-Maven projects. Requires the Artifactory plugin.
+    Requires :jenkins-wiki:`Artifactory Plugin <Artifactory+Plugin>`
+>>>>>>> f90a819af3475da0429b99e1a3518a2df87b6dff
 
     :arg str url: URL of the Artifactory server. e.g.
         http://www.jfrog.com/artifactory/ (default: '')
@@ -1719,6 +1731,7 @@ def artifactory_generic(parser, xml_parent, data):
         and vcs.revision (default [])
     :arg bool deploy-build-info: Deploy jenkins build metadata with
         artifacts to Artifactory (default False)
+<<<<<<< HEAD
     :arg bool env-vars-include: Include environment variables accessible by
         the build process. Jenkins-specific env variables are always included.
         Use the env-vars-include-patterns and env-vars-exclude-patterns to
@@ -1730,6 +1743,17 @@ def artifactory_generic(parser, xml_parent, data):
     :arg list env-vars-exclude-patterns: List of environment variable patterns
         that determine the env vars excluded from the published build info
         (default [])
+=======
+    :arg bool include-env-vars: Include all environment variables
+        accessible by the build process. Jenkins-specific env variables
+        are always included (default False)
+    :arg list include-env-var-pattern: List of environment variables that will
+        be included as part of the published build info. Environment
+        variables may contain the * and the ? wildcards (default [])
+    :arg list exclude-env-var-pattern: List of environment variables that will
+        be excluded from the published build info
+        (default ['*password*','*secret*'])
+>>>>>>> f90a819af3475da0429b99e1a3518a2df87b6dff
     :arg bool discard-old-builds:
         Remove older build info from Artifactory (default False)
     :arg bool discard-build-artifacts:
@@ -1764,7 +1788,11 @@ def artifactory_generic(parser, xml_parent, data):
     XML.SubElement(artifactory, 'deployBuildInfo').text = str(
         data.get('deploy-build-info', False)).lower()
     XML.SubElement(artifactory, 'includeEnvVars').text = str(
+<<<<<<< HEAD
         data.get('env-vars-include', False)).lower()
+=======
+        data.get('include-env-vars', False)).lower()
+>>>>>>> f90a819af3475da0429b99e1a3518a2df87b6dff
     XML.SubElement(artifactory, 'discardOldBuilds').text = str(
         data.get('discard-old-builds', False)).lower()
     XML.SubElement(artifactory, 'discardBuildArtifacts').text = str(
@@ -1785,6 +1813,11 @@ def artifactory_maven_freestyle(parser, xml_parent, data):
         connected to the selected Artifactory Server (default '')
     :arg str release-repo-key: Release repository name (default '')
     :arg str snapshot-repo-key: Snapshots repository name (default '')
+<<<<<<< HEAD
+=======
+    :arg bool deploy-artifacts: Push artifacts to the Artifactory
+        Server (default True)
+>>>>>>> f90a819af3475da0429b99e1a3518a2df87b6dff
     :arg bool publish-build-info: Push build metadata with artifacts
         (default False)
     :arg bool discard-old-builds:
@@ -1847,6 +1880,7 @@ def artifactory_maven_freestyle(parser, xml_parent, data):
         stale components in Black Duck Code Center application after
         the build is completed and deployed in Artifactory
         (default True)
+<<<<<<< HEAD
     :arg bool deploy-artifacts: Push artifacts to the Artifactory
         Server. The specific artifacts to push are controlled using
         the deployment-include-patterns and deployment-exclude-patterns.
@@ -1867,6 +1901,19 @@ def artifactory_maven_freestyle(parser, xml_parent, data):
     :arg list env-vars-exclude-patterns: List of environment variable patterns
         that will be excluded from the published build info
         (default [])
+=======
+    :arg list include-deployment-pattern: List of patterns for mappings
+        of build artifacts to published artifacts. Supports Ant-style wildcards
+        mapping to target directories. E.g.: */*.zip=>dir (default[]')
+    :arg list exclude-deployment-pattern: List of patterns
+        for excluding artifacts from deployment to Artifactory (default [])
+    :arg list include-env-var-pattern: List of environment variables that
+        will be included as part of the published build info. Environment
+        variables may contain the * and the ? wildcards (default [])
+    :arg list exclude-env-var-pattern: List of environment variables
+        that will be excluded from the published build infoi
+        (default ['*password*','*secret*'])
+>>>>>>> f90a819af3475da0429b99e1a3518a2df87b6dff
 
     Example:
 

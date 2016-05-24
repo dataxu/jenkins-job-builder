@@ -17,7 +17,11 @@
       <discardBuildArtifacts>true</discardBuildArtifacts>
       <envVarsPatterns>
         <includePatterns>PROJECT_*,ORG_*</includePatterns>
+<<<<<<< HEAD
         <excludePatterns/>
+=======
+        <excludePatterns>*password*,*secret*</excludePatterns>
+>>>>>>> f90a819af3475da0429b99e1a3518a2df87b6dff
       </envVarsPatterns>
     </org.jfrog.hudson.generic.ArtifactoryGenericConfigurator>
   </buildWrappers>

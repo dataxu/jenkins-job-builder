@@ -219,6 +219,7 @@ def findbugs_settings(xml_parent, data):
                    'usePreviousBuildAsReference').text = use_previous_build
 
 
+<<<<<<< HEAD
 def get_value_from_yaml_or_config_file(key, section, data, parser):
     logger = logging.getLogger(__name__)
     result = data.get(key, '')
@@ -304,6 +305,23 @@ def artifactory_deployment_patterns(xml_parent, data):
 def artifactory_env_vars_patterns(xml_parent, data):
     include_exclude_patterns(xml_parent, data, 'env-vars',
                              'envVarsPatterns')
+=======
+def artifactory_deployment_patterns(xml_parent, data):
+    deployment_patterns = XML.SubElement(xml_parent,
+                                         'artifactDeploymentPatterns')
+    XML.SubElement(deployment_patterns, 'includePatterns').text = ','.join(
+        data.get('include-deployment-pattern', []))
+    XML.SubElement(deployment_patterns, 'excludePatterns').text = ','.join(
+        data.get('exclude-deployment-pattern', ['*password*', '*secret*']))
+
+
+def artifactory_env_vars_patterns(xml_parent, data):
+    deployment_patterns = XML.SubElement(xml_parent, 'envVarsPatterns')
+    XML.SubElement(deployment_patterns, 'includePatterns').text = ','.join(
+        data.get('include-env-var-pattern', []))
+    XML.SubElement(deployment_patterns, 'excludePatterns').text = ','.join(
+        data.get('exclude-env-var-pattern', ['*password*', '*secret*']))
+>>>>>>> f90a819af3475da0429b99e1a3518a2df87b6dff
 
 
 def artifactory_optional_props(xml_parent, data, target):
@@ -326,7 +344,11 @@ def artifactory_optional_props(xml_parent, data, target):
         ('discardOldBuilds', 'discard-old-builds', False),
         ('discardBuildArtifacts', 'discard-build-artifacts', False),
         ('deployBuildInfo', 'publish-build-info', False),
+<<<<<<< HEAD
         ('includeEnvVars', 'env-vars-include', False),
+=======
+        ('includeEnvVars', 'include-env-vars', False),
+>>>>>>> f90a819af3475da0429b99e1a3518a2df87b6dff
         ('runChecks', 'run-checks', False),
         ('includePublishArtifacts', 'include-publish-artifacts', False),
         ('licenseAutoDiscovery', 'license-auto-discovery', True),

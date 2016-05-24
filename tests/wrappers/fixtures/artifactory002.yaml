@@ -11,8 +11,13 @@ wrappers:
       - 'libs-release-local:prod/*=>prod-jars'
       matrix-params:
       - 'custom_prop=${PROJECT_ENV_VAR}'
+<<<<<<< HEAD
       env-vars-include: true
       env-vars-include-patterns:
+=======
+      include-env-vars: true
+      include-env-var-pattern:
+>>>>>>> f90a819af3475da0429b99e1a3518a2df87b6dff
       - 'PROJECT_*'
       - 'ORG_*'
       discard-old-builds: true

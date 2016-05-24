@@ -34,11 +34,19 @@
       </resolverDetails>
       <artifactDeploymentPatterns>
         <includePatterns>*.zip=&gt;results</includePatterns>
+<<<<<<< HEAD
         <excludePatterns/>
       </artifactDeploymentPatterns>
       <envVarsPatterns>
         <includePatterns>PROJECT_*,ORG_*</includePatterns>
         <excludePatterns/>
+=======
+        <excludePatterns>*password*,*secret*</excludePatterns>
+      </artifactDeploymentPatterns>
+      <envVarsPatterns>
+        <includePatterns>PROJECT_*,ORG_*</includePatterns>
+        <excludePatterns>*password*,*secret*</excludePatterns>
+>>>>>>> f90a819af3475da0429b99e1a3518a2df87b6dff
       </envVarsPatterns>
       <matrixParams>custom_prop=${PROJECT_ENV_VAR}</matrixParams>
       <scopes/>
