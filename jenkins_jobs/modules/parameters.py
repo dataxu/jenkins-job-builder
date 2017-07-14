@@ -407,17 +407,7 @@ def extended_choice_param(registry, xml_parent, data):
                       'com.cwctravel.hudson.plugins.'
                       'extended__choice__parameter.'
                       'ExtendedChoiceParameterDefinition')
-    XML.SubElement(pdef, 'value').text = data.get('value', '')
-    XML.SubElement(pdef, 'visibleItemCount').text = str(data.get(
-        'visible-items', data.get('visible-item-count', 5)))
-    XML.SubElement(pdef, 'multiSelectDelimiter').text = data.get(
-        'multi-select-delimiter', ',')
-    XML.SubElement(pdef, 'quoteValue').text = str(data.get('quote-value',
-                                                  False)).lower()
-    XML.SubElement(pdef, 'defaultValue').text = data.get(
-        'default-value', '')
-    XML.SubElement(pdef, 'descriptionPropertyValue').text = data.get(
-        'value-description', '')
+    ####basic parameter types
     choice = data.get('type', 'single-select')
     choicedict = {'single-select': 'PT_SINGLE_SELECT',
                   'multi-select': 'PT_MULTI_SELECT',
@@ -436,16 +426,74 @@ def extended_choice_param(registry, xml_parent, data):
         raise JenkinsJobsException("Type entered is not valid, must be one "
                                    "of: single-select, multi-select, radio, "
                                    "textbox or checkbox")
+
+    XML.SubElement(pdef, 'visibleItemCount').text = str(data.get(
+        'visible-items', data.get('visible-item-count', 5)))
+    XML.SubElement(pdef, 'multiSelectDelimiter').text = data.get(
+        'multi-select-delimiter', ',')
+    XML.SubElement(pdef, 'quoteValue').text = str(data.get('quote-value',
+                                                  False)).lower()
+
+    ##values for basic parameter type
+    XML.SubElement(pdef, 'value').text = data.get('value', '')
     XML.SubElement(pdef, 'propertyFile').text = data.get('property-file', '')
     XML.SubElement(pdef, 'propertyKey').text = data.get('property-key', '')
+    XML.SubElement(pdef, 'groovyScript').text = data.get('groovy-script', '')
+    XML.SubElement(pdef, 'groovyScriptFile').text = data.get('groovy-script-file', '')
+    ##if groovy script is present then add other config details
+    parameters = data.get('groovy-parameters', [])
+    parametersXML = XML.SubElement(pdef, 'bindings')
+    if parameters:
+        parametersXML.text = set_bindings_for_extended_choice(parameters)
+
+    XML.SubElement(pdef, 'groovyClasspath').text = data.get(
+        'groovy-classpath', None)
+    XML.SubElement(pdef, 'projectName').text = data.get('name', '')
+   
+    ###defaults for basic parameter type
+    XML.SubElement(pdef, 'defaultValue').text = data.get(
+        'default-value', '')
     XML.SubElement(pdef, 'defaultPropertyFile').text = data.get(
         'default-property-file', '')
     XML.SubElement(pdef, 'defaultPropertyKey').text = data.get(
         'default-property-key', '')
+    XML.SubElement(pdef, 'defaultGroovyScript').text = data.get(
+        'default-groovy-script', '')
+    XML.SubElement(pdef, 'defaultGroovyScriptFile').text = data.get(
+        'default-groovy-script-file', '')
+    parameters = data.get('default-groovy-parameters', [])
+    parametersXML =XML.SubElement(pdef, 'defaultBindings')
+    if parameters:
+        parametersXML.text = set_bindings_for_extended_choice(parameters)
+    
+    XML.SubElement(pdef, 'defaultGroovyClasspath').text = data.get(
+        'default-groovy-classpath', None)
+    
+    ###descriptions for basic parameter type
+    XML.SubElement(pdef, 'descriptionPropertyValue').text = data.get(
+        'value-description', '')
     XML.SubElement(pdef, 'descriptionPropertyFile').text = data.get(
         'description-property-file', '')
     XML.SubElement(pdef, 'descriptionPropertyKey').text = data.get(
         'description-property-key', '')
+    XML.SubElement(pdef, 'descriptionGroovyScript').text = data.get(
+        'description-groovy-script', '')
+    XML.SubElement(pdef, 'descriptionGroovyScriptFile').text = data.get(
+        'description-groovy-script-file', '')
+    parameters = data.get('description-groovy-parameters', [])
+    parametersXML = XML.SubElement(pdef, 'descriptionBindings')
+    if parameters:
+        parametersXML.text = set_bindings_for_extended_choice(parameters)
+
+    XML.SubElement(pdef, 'descriptionGroovyClasspath').text = data.get(
+        'description-groovy-classpath', None)
+
+def set_bindings_for_extended_choice(parameters_list):
+    string_of_parameters = ''
+    for each_parameter in parameters_list:
+            keys = each_parameter.keys()
+            string_of_parameters = string_of_parameters + str(each_parameter[keys[0]]) + '=' + str(each_parameter[keys[1]]) + '\n'
+    return string_of_parameters
 
 
 def validating_string_param(registry, xml_parent, data):
