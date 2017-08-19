@@ -2,10 +2,10 @@ Job Definitions
 ===============
 
 The job definitions for Jenkins Job Builder are kept in any number of
-YAML files, in whatever way you would like to organize them.  When you
+YAML or JSON files, in whatever way you would like to organize them.  When you
 invoke ``jenkins-jobs`` you may specify either the path of a single
 YAML file, or a directory.  If you choose a directory, all of
-the .yaml (or .yml) files in that directory will be read, and all the
+the .yaml/.yml or .json files in that directory will be read, and all the
 jobs they define will be created or updated.
 
 Definitions
@@ -65,6 +65,37 @@ define a template that you can use to create jobs with a `Project`_
 definition.  It's name will depend on what is supplied to the
 `Project`_.
 
+If you use the variable ``{template-name}``, the name of the template
+itself (e.g. ``{name}-unit-tests`` in the above example) will be
+substituted in. This is useful in cases where you need to trace a job
+back to its template.
+
+Sometimes it is useful to have the same job name format used even
+where the template contents may vary. `Ids` provide a mechanism to
+support such use cases in addition to simplifying referencing
+templates when the name contains the more complex substitution with
+default values.
+
+
+Default Values for Template Variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To facilitate reuse of templates with many variables that can be
+substituted, but where in most cases the same or no value is needed,
+it is possible to specify defaults for the variables within the
+templates themselves.
+
+This can be used to provide common settings for particular templates.
+For example:
+
+.. literalinclude::
+    /../../tests/yamlparser/fixtures/template_default_variables.yaml
+   :language: yaml
+
+To use a default value for a variable used in the name would be
+uncommon unless it was in addition to another variable. However you
+can use `Ids`_ simplify such use cases.
+
 .. _project:
 
 Project
@@ -116,6 +147,26 @@ additional variables can be specified for project variables. Example:
 
 .. literalinclude::  /../../tests/yamlparser/fixtures/templates002.yaml
 
+You can also specify some variable combinations to exclude from the matrix with
+the ``exclude`` keyword, to avoid generating jobs for those combinations. You
+can specify all the variables of the combination or only a subset, if you
+specify a subset, any value of the omited variable will match:
+
+.. literalinclude:: /../../tests/yamlparser/fixtures/template_exclude.yaml
+
+The above example will omit the jobs:
+
+ * build-axe1val1-axe2val1-axe3val2
+ * build-axe1val1-axe2val2-axe3val1
+ * build-axe1val2-axe2val2-axe3val1
+
+To achieve the same without the ``exclude`` tag one would have to do something
+a bit more complicated, that gets more complicated for each dimension in the
+combination, for the previous example, the counterpart would be:
+
+.. literalinclude::
+    /../../tests/yamlparser/fixtures/template_without_exclude.yaml
+
 Job Group
 ^^^^^^^^^
 
@@ -128,6 +179,20 @@ the Job Templates in the Job Group will be realized.  For example:
 
 Would cause the jobs `project-name-unit-tests` and `project-name-perf-tests` to be created
 in Jenkins.
+
+.. _views:
+
+Views
+^^^^^
+
+A view is a particular way of displaying a specific set of jobs. To
+create a view, you must define a view in a YAML file and have a variable called view-type with a valid value. It looks like this::
+
+  - view:
+      name: view-name
+      view-type: list
+
+Views are processed differently than Jobs and therefore will not work within a `Project`_ or a `Job Template`_.
 
 .. _macro:
 
@@ -210,9 +275,73 @@ Then ``<builders />`` section of the generated job show up as::
   </builders>
 
 As you can see, the specialized macro ``addtwo`` reused the definition from
-the generic macro ``add``.  Whenever you forget a parameter from a macro,
-it will not be expanded and left as is, which will most probably cause havoc in
-your Jenkins builds.
+the generic macro ``add``.
+
+Macro Notes
+~~~~~~~~~~~
+
+If a macro is not passed any parameters it will not have any expansion
+performed on it.  Thus if you forget to provide `any` parameters to a
+macro that expects some, the parameter-templates (``{foo}``) will be
+left as is in the resulting output; this is almost certainly not what
+you want.  Note if you provide an invalid parameter, the expansion
+will fail; the expansion will only be skipped if you provide `no`
+parameters at all.
+
+Macros are expanded using Python string substitution rules.  This can
+especially cause confusion with shell snippets that use ``{`` as part
+of their syntax.  As described, if a macro has `no` parameters, no
+expansion will be performed and thus it is correct to write the script
+with no escaping, e.g.::
+
+  - builder:
+    name: a_builder
+    builders:
+      - shell: |
+          VARIABLE=${VARIABLE:-bar}
+          function foo {
+              echo "my shell function"
+          }
+
+However, if the macro `has` parameters, you must escape the ``{`` you
+wish to make it through to the output, e.g.::
+
+  - builder:
+    name: a_builder
+    builders:
+       - shell: |
+         PARAMETER={parameter}
+         VARIABLE=${{VARIABLE:-bar}}
+         function foo {{
+              echo "my shell function"
+         }}
+
+Note that a ``job-template`` will have parameters by definition (at
+least a ``name``).  Thus embedded-shell within a ``job-template`` should
+always use ``{{`` to achieve a literal ``{``.  A generic builder will need
+to consider the correct quoting based on its use of parameters.
+
+
+.. _ids:
+
+Item ID's
+^^^^^^^^^
+
+It's possible to assign an `id` to any of the blocks and then use that
+to reference it instead of the name. This has two primary functions:
+
+* A unique identifier where you wish to use the same naming format for
+  multiple templates. This allows to follow a naming scheme while
+  still using multiple templates to handle subtle variables in job
+  requirements.
+* Provides a simpler name for a `job-template` where you have multiple
+  variables including default values in the name and don't wish to have
+  to include this information in every use. This also makes changing
+  the template output name without impacting references.
+
+Example:
+
+.. literalinclude::  /../../tests/yamlparser/fixtures/template_ids.yaml
 
 .. _raw:
 
@@ -222,7 +351,7 @@ Raw config
 It is possible, but not recommended, to use `raw` within a module to
 inject raw xml into the job configs.
 
-This is relevant in case there is no apropriate module for a
+This is relevant in case there is no appropriate module for a
 Jenkins plugin or the module does not behave as you expect it to do.
 
 For example:
@@ -231,7 +360,7 @@ For example:
 
 Is the raw way of adding support for the `xvnc` wrapper.
 
-To get the apropriate xml to use you would need to create/edit a job
+To get the appropriate xml to use you would need to create/edit a job
 in Jenkins and grab the relevant raw xml segment from the
 `config.xml`.
 
@@ -296,10 +425,10 @@ For example:
 
 
 By default JJB will fail if it tries to interpolate a variable that was not
-defined, but you can change that behaviour and allow empty variables with the
+defined, but you can change that behavior and allow empty variables with the
 allow_empty_variables configuration option.
 
-For example, having a configuration file with tha toption enabled:
+For example, having a configuration file with that option enabled:
 
 .. literalinclude:: /../../tests/yamlparser/fixtures/allow_empty_variables.conf
 
@@ -319,9 +448,8 @@ For example:
 
 
 The `anchors and aliases`_ are expanded internally within JJB's yaml loading
-calls, and are limited to individual documents. That means you use the same
-anchor name in separate files without collisions, but also means that you must
-define the anchor in the same file that you intend to reference it.
+calls and are not limited to individual documents. That means you can't use
+the same anchor name in included files without collisions.
 
 A simple example can be seen in the specs `full length example`_ with the
 following being more representative of usage within JJB:
@@ -351,11 +479,9 @@ The bulk of the job definitions come from the following modules.
 
 .. toctree::
    :maxdepth: 2
+   :glob:
 
-   project_flow
-   project_freestyle
-   project_maven
-   project_matrix
+   project_*
    builders
    hipchat
    metadata
@@ -384,4 +510,3 @@ Generally the sequence is:
     #. builders (maven, freestyle, matrix, etc..)
     #. postbuilders (maven only, configured like :ref:`builders`)
     #. publishers/reporters/notifications
-

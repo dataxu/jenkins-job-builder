@@ -2,8 +2,9 @@
 <project>
   <buildWrappers>
     <com.lookout.jenkins.EnvironmentScript>
-        <script>echo foo=bar</script>
-        <onlyRunOnParent>true</onlyRunOnParent>
+      <script>echo foo=bar</script>
+      <scriptType>unixScript</scriptType>
+      <onlyRunOnParent>true</onlyRunOnParent>
     </com.lookout.jenkins.EnvironmentScript>
   </buildWrappers>
 </project>

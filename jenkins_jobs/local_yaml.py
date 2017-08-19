@@ -23,7 +23,7 @@ managed separately to the yaml job configurations. A specific usage of this is
 inlining scripts contained in separate files, although such tags may also be
 used to simplify usage of macros or job templates.
 
-The tag ``!include`` will treat the following string as file which should be
+The tag ``!include:`` will treat the following string as file which should be
 parsed as yaml configuration data.
 
 Example:
@@ -35,59 +35,113 @@ Example:
     .. literalinclude:: /../../tests/yamlparser/fixtures/include001.yaml.inc
 
 
-The tag ``!include-raw`` will treat the following file as a data blob, which
-should be read into the calling yaml construct without any further parsing.
-Any data in a file included through this tag, will be treated as string data.
+The tag ``!include-raw:`` will treat the given string or list of strings as
+filenames to be opened as one or more data blob, which should be read into
+the calling yaml construct without any further parsing. Any data in a file
+included through this tag, will be treated as string data.
 
-Example:
+Examples:
 
     .. literalinclude:: /../../tests/localyaml/fixtures/include-raw001.yaml
 
     contents of include-raw001-hello-world.sh:
 
-    .. literalinclude::
-        /../../tests/localyaml/fixtures/include-raw001-hello-world.sh
+        .. literalinclude::
+            /../../tests/localyaml/fixtures/include-raw001-hello-world.sh
 
     contents of include-raw001-vars.sh:
 
+        .. literalinclude::
+            /../../tests/localyaml/fixtures/include-raw001-vars.sh
+
+    using a list of files:
+
     .. literalinclude::
-        /../../tests/localyaml/fixtures/include-raw001-vars.sh
+        /../../tests/localyaml/fixtures/include-raw-multi001.yaml
 
+The tag ``!include-raw-escape:`` treats the given string or list of strings as
+filenames to be opened as one or more data blobs, which should be escaped
+before being read in as string data. This allows job-templates to use this tag
+to include scripts from files without needing to escape braces in the original
+file.
 
-The tag ``!include-raw-escape`` treats the given file as a data blob, which
-should be escaped before being read in as string data. This allows
-job-templates to use this tag to include scripts from files without
-needing to escape braces in the original file.
+.. warning::
 
+    When used as a macro ``!include-raw-escape:`` should only be used if
+    parameters are passed into the escaped file and you would like to escape
+    those parameters. If the file does not have any jjb parameters passed into
+    it then ``!include-raw:`` should be used instead otherwise you will run
+    into an interesting issue where ``include-raw-escape:`` actually adds
+    additional curly braces around existing curly braces. For example
+    ${PROJECT} becomes ${{PROJECT}} which may break bash scripts.
 
-Example:
+Examples:
 
     .. literalinclude::
         /../../tests/localyaml/fixtures/include-raw-escaped001.yaml
 
     contents of include-raw001-hello-world.sh:
 
-    .. literalinclude::
-        /../../tests/localyaml/fixtures/include-raw001-hello-world.sh
+        .. literalinclude::
+            /../../tests/localyaml/fixtures/include-raw001-hello-world.sh
 
     contents of include-raw001-vars.sh:
 
-    .. literalinclude::
-        /../../tests/localyaml/fixtures/include-raw001-vars.sh
+        .. literalinclude::
+            /../../tests/localyaml/fixtures/include-raw001-vars.sh
 
+    using a list of files:
+
+    .. literalinclude::
+        /../../tests/localyaml/fixtures/include-raw-escaped-multi001.yaml
+
+
+For all the multi file includes, the files are simply appended using a newline
+character.
+
+
+To allow for job templates to perform substitution on the path names, when a
+filename containing a python format placeholder is encountered, lazy loading
+support is enabled, where instead of returning the contents back during yaml
+parsing, it is delayed until the variable substitution is performed.
+
+Example:
+
+    .. literalinclude:: /../../tests/yamlparser/fixtures/lazy-load-jobs001.yaml
+
+    using a list of files:
+
+    .. literalinclude::
+        /../../tests/yamlparser/fixtures/lazy-load-jobs-multi001.yaml
+
+.. note::
+
+    Because lazy-loading involves performing the substitution on the file
+    name, it means that jenkins-job-builder can not call the variable
+    substitution on the contents of the file. This means that the
+    ``!include-raw:`` tag will behave as though ``!include-raw-escape:`` tag
+    was used instead whenever name substitution on the filename is to be
+    performed.
+
+    Given the behaviour described above, when substitution is to be performed
+    on any filename passed via ``!include-raw-escape:`` the tag will be
+    automatically converted to ``!include-raw:`` and no escaping will be
+    performed.
 """
 
-import codecs
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
 import functools
+import io
 import logging
-import re
 import os
+import re
+
 import yaml
 from yaml.constructor import BaseConstructor
+from yaml.representer import BaseRepresenter
+from yaml import YAMLObject
+
+from collections import OrderedDict
+
 
 logger = logging.getLogger(__name__)
 
@@ -129,12 +183,42 @@ class OrderedConstructor(BaseConstructor):
         data.update(mapping)
 
 
-class LocalLoader(OrderedConstructor, yaml.Loader):
-    """Subclass for yaml.Loader which handles the local tags 'include',
-    'include-raw' and 'include-raw-escaped' to specify a file to include data
-    from and whether to parse it as additional yaml, treat it as a data blob
-    or additionally escape the data contained. These are specified in yaml
-    files by "!include path/to/file.yaml".
+class OrderedRepresenter(BaseRepresenter):
+
+    def represent_yaml_mapping(self, mapping, flow_style=None):
+        tag = u'tag:yaml.org,2002:map'
+        node = self.represent_mapping(tag, mapping, flow_style=flow_style)
+        return node
+
+
+class LocalAnchorLoader(yaml.Loader):
+    """Subclass for yaml.Loader which keeps Alias between calls"""
+    anchors = {}
+
+    def __init__(self, *args, **kwargs):
+        super(LocalAnchorLoader, self).__init__(*args, **kwargs)
+        self.anchors = LocalAnchorLoader.anchors
+
+    @classmethod
+    def reset_anchors(cls):
+        cls.anchors = {}
+
+    # override the default composer to skip resetting the anchors at the
+    # end of the current document
+    def compose_document(self):
+        # Drop the DOCUMENT-START event.
+        self.get_event()
+        # Compose the root node.
+        node = self.compose_node(None, None)
+        # Drop the DOCUMENT-END event.
+        self.get_event()
+        return node
+
+
+class LocalLoader(OrderedConstructor, LocalAnchorLoader):
+    """Subclass for yaml.Loader which handles storing the search_path and
+    escape_callback functions for use by the custom YAML objects to find files
+    and escape the content where required.
 
     Constructor access a list of search paths to look under for the given
     file following each tag, taking the first match found. Search path by
@@ -146,41 +230,37 @@ class LocalLoader(OrderedConstructor, yaml.Loader):
 
         # use the load function provided in this module
         import local_yaml
-        data = local_yaml.load(open(fn))
+        data = local_yaml.load(io.open(fn, 'r', encoding='utf-8'))
 
 
         # Loading by providing the alternate class to the default yaml load
         from local_yaml import LocalLoader
-        data = yaml.load(open(fn), LocalLoader)
+        data = yaml.load(io.open(fn, 'r', encoding='utf-8'), LocalLoader)
 
         # Loading with a search path
         from local_yaml import LocalLoader
         import functools
-        data = yaml.load(open(fn), functools.partial(LocalLoader,
-                        search_path=['path']))
+        data = yaml.load(io.open(fn, 'r', encoding='utf-8'),
+                         functools.partial(LocalLoader, search_path=['path']))
 
     """
 
     def __init__(self, *args, **kwargs):
         # make sure to pop off any local settings before passing to
         # the parent constructor as any unknown args may cause errors.
-        self.search_path = set()
+        self.search_path = list()
         if 'search_path' in kwargs:
             for p in kwargs.pop('search_path'):
                 logger.debug("Adding '{0}' to search path for include tags"
                              .format(p))
-                self.search_path.add(os.path.normpath(p))
+                self.search_path.append(os.path.normpath(p))
 
         if 'escape_callback' in kwargs:
-            self._escape = kwargs.pop('escape_callback')
+            self.escape_callback = kwargs.pop('escape_callback')
+        else:
+            self.escape_callback = self._escape
 
         super(LocalLoader, self).__init__(*args, **kwargs)
-
-        # Add tag constructors
-        self.add_constructor('!include', self._include_tag)
-        self.add_constructor('!include-raw', self._include_raw_tag)
-        self.add_constructor('!include-raw-escape',
-                             self._include_raw_escape_tag)
 
         # constructor to preserve order of maps and ensure that the order of
         # keys returned is consistent across multiple python versions
@@ -188,44 +268,181 @@ class LocalLoader(OrderedConstructor, yaml.Loader):
                              type(self).construct_yaml_map)
 
         if hasattr(self.stream, 'name'):
-            self.search_path.add(os.path.normpath(
+            self.search_path.append(os.path.normpath(
                 os.path.dirname(self.stream.name)))
-        self.search_path.add(os.path.normpath(os.path.curdir))
-
-    def _find_file(self, filename):
-        for dirname in self.search_path:
-            candidate = os.path.expanduser(os.path.join(dirname, filename))
-            if os.path.isfile(candidate):
-                logger.info("Including file '{0}' from path '{0}'"
-                            .format(filename, dirname))
-                return candidate
-        return filename
-
-    def _include_tag(self, loader, node):
-        filename = self._find_file(loader.construct_yaml_str(node))
-        with open(filename, 'r') as f:
-            data = yaml.load(f, functools.partial(LocalLoader,
-                                                  search_path=self.search_path
-                                                  ))
-        return data
-
-    def _include_raw_tag(self, loader, node):
-        filename = self._find_file(loader.construct_yaml_str(node))
-        try:
-            with codecs.open(filename, 'r', 'utf-8') as f:
-                data = f.read()
-        except:
-            logger.error("Failed to include file using search path: '{0}'"
-                         .format(':'.join(self.search_path)))
-            raise
-        return data
-
-    def _include_raw_escape_tag(self, loader, node):
-        return self._escape(self._include_raw_tag(loader, node))
+        self.search_path.append(os.path.normpath(os.path.curdir))
 
     def _escape(self, data):
         return re.sub(r'({|})', r'\1\1', data)
 
 
+class LocalDumper(OrderedRepresenter, yaml.Dumper):
+    def __init__(self, *args, **kwargs):
+        super(LocalDumper, self).__init__(*args, **kwargs)
+
+        # representer to ensure conversion back looks like normal
+        # mapping and hides that we use OrderedDict internally
+        self.add_representer(OrderedDict,
+                             type(self).represent_yaml_mapping)
+        # convert any tuples to lists as the JJB input is generally
+        # in list format
+        self.add_representer(tuple,
+                             type(self).represent_list)
+
+
+class BaseYAMLObject(YAMLObject):
+    yaml_loader = LocalLoader
+    yaml_dumper = LocalDumper
+
+
+class YamlInclude(BaseYAMLObject):
+    yaml_tag = u'!include:'
+
+    @classmethod
+    def _find_file(cls, filename, search_path):
+        for dirname in search_path:
+            candidate = os.path.expanduser(os.path.join(dirname, filename))
+            if os.path.isfile(candidate):
+                logger.info("Including file '{0}' from path '{1}'"
+                            .format(filename, dirname))
+                return candidate
+        return filename
+
+    @classmethod
+    def _open_file(cls, loader, node):
+        node_str = loader.construct_yaml_str(node)
+        try:
+            node_str.format()
+        except KeyError:
+            return cls._lazy_load(loader, cls.yaml_tag, node)
+
+        filename = cls._find_file(node_str, loader.search_path)
+        try:
+            with io.open(filename, 'r', encoding='utf-8') as f:
+                return f.read()
+        except:
+            logger.error("Failed to include file using search path: '{0}'"
+                         .format(':'.join(loader.search_path)))
+            raise
+
+    @classmethod
+    def _from_file(cls, loader, node):
+        contents = cls._open_file(loader, node)
+        if isinstance(contents, LazyLoader):
+            return contents
+
+        data = yaml.load(contents,
+                         functools.partial(cls.yaml_loader,
+                                           search_path=loader.search_path))
+        return data
+
+    @classmethod
+    def _lazy_load(cls, loader, tag, node_str):
+        logger.info("Lazy loading of file template '{0}' enabled"
+                    .format(node_str))
+        return LazyLoader((cls, loader, node_str))
+
+    @classmethod
+    def from_yaml(cls, loader, node):
+        if isinstance(node, yaml.ScalarNode):
+            return cls._from_file(loader, node)
+        elif isinstance(node, yaml.SequenceNode):
+            contents = [cls._from_file(loader, scalar_node)
+                        for scalar_node in node.value]
+            if any(isinstance(s, LazyLoader) for s in contents):
+                return LazyLoaderCollection(contents)
+
+            return u'\n'.join(contents)
+        else:
+            raise yaml.constructor.ConstructorError(
+                None, None, "expected either a sequence or scalar node, but "
+                "found %s" % node.id, node.start_mark)
+
+
+class YamlIncludeRaw(YamlInclude):
+    yaml_tag = u'!include-raw:'
+
+    @classmethod
+    def _from_file(cls, loader, node):
+        return cls._open_file(loader, node)
+
+
+class YamlIncludeRawEscape(YamlIncludeRaw):
+    yaml_tag = u'!include-raw-escape:'
+
+    @classmethod
+    def from_yaml(cls, loader, node):
+        data = YamlIncludeRaw.from_yaml(loader, node)
+        if isinstance(data, LazyLoader):
+            logger.warning("Replacing %s tag with %s since lazy loading means "
+                           "file contents will not be deep formatted for "
+                           "variable substitution.", cls.yaml_tag,
+                           YamlIncludeRaw.yaml_tag)
+            return data
+        else:
+            return loader.escape_callback(data)
+
+
+class DeprecatedTag(BaseYAMLObject):
+
+    @classmethod
+    def from_yaml(cls, loader, node):
+        logger.warning("tag '%s' is deprecated, switch to using '%s'",
+                       cls.yaml_tag, cls._new.yaml_tag)
+        return cls._new.from_yaml(loader, node)
+
+
+class YamlIncludeDeprecated(DeprecatedTag):
+    yaml_tag = u'!include'
+    _new = YamlInclude
+
+
+class YamlIncludeRawDeprecated(DeprecatedTag):
+    yaml_tag = u'!include-raw'
+    _new = YamlIncludeRaw
+
+
+class YamlIncludeRawEscapeDeprecated(DeprecatedTag):
+    yaml_tag = u'!include-raw-escape'
+    _new = YamlIncludeRawEscape
+
+
+class LazyLoaderCollection(object):
+    """Helper class to format a collection of LazyLoader objects"""
+    def __init__(self, sequence):
+        self._data = sequence
+
+    def format(self, *args, **kwargs):
+        return u'\n'.join(item.format(*args, **kwargs) for item in self._data)
+
+
+class LazyLoader(object):
+    """Helper class to provide lazy loading of files included using !include*
+    tags where the path to the given file contains unresolved placeholders.
+    """
+
+    def __init__(self, data):
+        # str subclasses can only have one argument, so assume it is a tuple
+        # being passed and unpack as needed
+        self._cls, self._loader, self._node = data
+
+    def __str__(self):
+        return "%s %s" % (self._cls.yaml_tag, self._node.value)
+
+    def __repr__(self):
+        return "%s %s" % (self._cls.yaml_tag, self._node.value)
+
+    def format(self, *args, **kwargs):
+        node = yaml.ScalarNode(
+            tag=self._node.tag,
+            value=self._node.value.format(*args, **kwargs))
+        return self._cls.from_yaml(self._loader, node)
+
+
 def load(stream, **kwargs):
+    LocalAnchorLoader.reset_anchors()
     return yaml.load(stream, functools.partial(LocalLoader, **kwargs))
+
+
+def dump(data, stream=None, **kwargs):
+    return yaml.dump(data, stream, Dumper=LocalDumper, **kwargs)

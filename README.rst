@@ -1,19 +1,19 @@
 README
 ======
 
-Jenkins Job Builder takes simple descriptions of Jenkins_ jobs in YAML_ format,
-and uses them to configure Jenkins. You can keep your job descriptions in human
-readable text format in a version control system to make changes and auditing
-easier. It also has a flexible template system, so creating many similarly
-configured jobs is easy.
+Jenkins Job Builder takes simple descriptions of Jenkins_ jobs in YAML_ or JSON_
+format and uses them to configure Jenkins. You can keep your job descriptions in
+human readable text format in a version control system to make changes and
+auditing easier. It also has a flexible template system, so creating many
+similarly configured jobs is easy.
 
 To install::
 
-    $ sudo python setup.py install
+    $ pip install --user jenkins-job-builder
 
 Online documentation:
 
-* http://ci.openstack.org/jenkins-job-builder/
+* http://docs.openstack.org/infra/jenkins-job-builder/
 
 Developers
 ----------
@@ -28,6 +28,13 @@ Repository:
 Cloning::
 
     git clone https://git.openstack.org/openstack-infra/jenkins-job-builder
+
+A virtual environment is recommended for development.  For example, Jenkins
+Job Builder may be installed from the top level directory::
+
+    $ virtualenv .venv
+    $ source .venv/bin/activate
+    $ pip install -r test-requirements.txt -e .
 
 Patches are submitted via Gerrit at:
 
@@ -62,6 +69,21 @@ This consistency will help users avoid simple mistakes when writing
 YAML, as well as developers when matching YAML components to Python
 implementation.
 
+Unit Tests
+----------
+
+Unit tests have been included and are in the ``tests`` folder. Many unit
+tests samples are included as examples in our documentation to ensure that
+examples are kept current with existing behaviour. To run the unit tests,
+execute the command::
+
+    tox -e py34,py27
+
+* Note: View ``tox.ini`` to run tests on other versions of Python,
+  generating the documentation and additionally for any special notes
+  on running the test to validate documentation external URLs from behind
+  proxies.
+
 Installing without setup.py
 ---------------------------
 
@@ -75,8 +97,9 @@ Then install the required python packages using pip_::
 
     $ sudo pip install PyYAML python-jenkins
 
-.. _Jenkins: http://jenkins-ci.org/
+.. _Jenkins: https://jenkins.io/
 .. _YAML: http://www.yaml.org/
+.. _JSON: http://json.org/
 .. _pep8: https://pypi.python.org/pypi/pep8
 .. _pyflakes: https://pypi.python.org/pypi/pyflakes
 .. _tox: https://testrun.org/tox

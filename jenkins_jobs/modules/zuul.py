@@ -17,7 +17,7 @@ The Zuul module adds jobs parameters to manually run a build as Zuul would
 have. It is entirely optional, Zuul 2.0+ pass the parameters over Gearman.
 
 .. _expected by Zuul: \
-http://ci.openstack.org/zuul/launchers.html#zuul-parameters
+http://docs.openstack.org/infra/zuul/launchers.html#zuul-parameters
 """
 
 import itertools
@@ -95,6 +95,9 @@ ZUUL_PARAMETERS = [
     {'string':
         {'description': 'Patchset of triggering change',
          'name': 'ZUUL_PATCHSET'}},
+    {'string':
+        {'description': 'Zuul considered this job voting or not',
+         'name': 'ZUUL_VOTING'}},
 ]
 
 ZUUL_POST_PARAMETERS = [
@@ -135,10 +138,11 @@ ZUUL_POST_PARAMETERS = [
 class Zuul(jenkins_jobs.modules.base.Base):
     sequence = 0
 
-    def handle_data(self, parser):
+    def handle_data(self, job_data):
         changed = False
-        jobs = itertools.chain(parser.data.get('job', {}).values(),
-                               parser.data.get('job-template', {}).values())
+        jobs = itertools.chain(
+            job_data.get('job', {}).values(),
+            job_data.get('job-template', {}).values())
         for job in jobs:
             triggers = job.get('triggers')
             if not triggers:

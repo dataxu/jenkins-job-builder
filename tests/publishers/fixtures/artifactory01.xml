@@ -2,34 +2,34 @@
 <project>
   <publishers>
     <org.jfrog.hudson.ArtifactoryRedeployPublisher>
+      <scopes/>
+      <violationRecipients/>
+      <blackDuckAppName/>
+      <blackDuckAppVersion/>
+      <blackDuckReportRecipients/>
+      <blackDuckScopes/>
       <deployArtifacts>true</deployArtifacts>
-      <discardOldBuilds>true</discardOldBuilds>
+      <discardOldBuilds>false</discardOldBuilds>
       <discardBuildArtifacts>false</discardBuildArtifacts>
-      <deployBuildInfo>true</deployBuildInfo>
+      <deployBuildInfo>false</deployBuildInfo>
       <includeEnvVars>false</includeEnvVars>
-      <evenIfUnstable>false</evenIfUnstable>
       <runChecks>false</runChecks>
       <includePublishArtifacts>false</includePublishArtifacts>
-      <passIdentifiedDownstream>false</passIdentifiedDownstream>
       <licenseAutoDiscovery>true</licenseAutoDiscovery>
       <enableIssueTrackerIntegration>false</enableIssueTrackerIntegration>
       <aggregateBuildIssues>false</aggregateBuildIssues>
-      <allowPromotionOfNonStagedBuilds>false</allowPromotionOfNonStagedBuilds>
       <blackDuckRunChecks>false</blackDuckRunChecks>
       <blackDuckIncludePublishedArtifacts>false</blackDuckIncludePublishedArtifacts>
       <autoCreateMissingComponentRequests>true</autoCreateMissingComponentRequests>
       <autoDiscardStaleComponentRequests>true</autoDiscardStaleComponentRequests>
       <filterExcludedArtifactsFromBuild>false</filterExcludedArtifactsFromBuild>
-      <scopes/>
-      <violationRecipients/>
+      <evenIfUnstable>false</evenIfUnstable>
+      <passIdentifiedDownstream>false</passIdentifiedDownstream>
+      <allowPromotionOfNonStagedBuilds>false</allowPromotionOfNonStagedBuilds>
       <matrixParams/>
-      <blackDuckAppName/>
-      <blackDuckAppVersion/>
-      <blackDuckReportRecipients/>
-      <blackDuckScopes/>
       <details>
-        <artifactoryUrl>http://artifactory.test.net/artifactory</artifactoryUrl>
         <artifactoryName>test</artifactoryName>
+        <artifactoryUrl>http://artifactory.example.net/artifactory</artifactoryUrl>
         <repositoryKey>libs-release-local</repositoryKey>
         <snapshotsRepositoryKey>libs-snapshot-local</snapshotsRepositoryKey>
         <stagingPlugin>
@@ -42,7 +42,7 @@
       </artifactDeploymentPatterns>
       <envVarsPatterns>
         <includePatterns/>
-        <excludePatterns>*password*,*secret*</excludePatterns>
+        <excludePatterns/>
       </envVarsPatterns>
     </org.jfrog.hudson.ArtifactoryRedeployPublisher>
   </publishers>

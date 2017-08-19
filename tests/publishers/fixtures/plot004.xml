@@ -6,6 +6,8 @@
         <hudson.plugins.plot.Plot>
           <title>MyPlot</title>
           <yaxis>Y</yaxis>
+          <width>750</width>
+          <height>450</height>
           <csvFileName>myplot.csv</csvFileName>
           <series>
             <hudson.plugins.plot.PropertiesSeries>
@@ -18,18 +20,23 @@
               <inclusionFlag>OFF</inclusionFlag>
               <exclusionValues/>
               <url>http://srv1</url>
-              <displayTableFlag>false</displayTableFlag>
+              <displayTableFlag>true</displayTableFlag>
               <fileType>csv</fileType>
             </hudson.plugins.plot.CSVSeries>
           </series>
           <group>PlotGroup</group>
           <useDescr>false</useDescr>
+          <exclZero>true</exclZero>
+          <logarithmic>true</logarithmic>
+          <keepRecords>false</keepRecords>
           <numBuilds/>
           <style>line</style>
         </hudson.plugins.plot.Plot>
         <hudson.plugins.plot.Plot>
           <title>MyPlot2</title>
           <yaxis>Y</yaxis>
+          <width>750</width>
+          <height>450</height>
           <csvFileName>myplot2.csv</csvFileName>
           <series>
             <hudson.plugins.plot.XMLSeries>
@@ -42,6 +49,9 @@
           </series>
           <group>PlotGroup</group>
           <useDescr>false</useDescr>
+          <exclZero>false</exclZero>
+          <logarithmic>false</logarithmic>
+          <keepRecords>false</keepRecords>
           <numBuilds/>
           <style>line</style>
         </hudson.plugins.plot.Plot>

@@ -17,32 +17,43 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import codecs
+import doctest
+import io
+import json
 import logging
+import operator
 import os
 import re
-import doctest
-import json
-import operator
+import xml.etree.ElementTree as XML
+
+import fixtures
+from six.moves import StringIO
 import testtools
 from testtools.content import text_content
-import xml.etree.ElementTree as XML
-from six.moves import configparser
-from six.moves import StringIO
+import testscenarios
 from yaml import safe_dump
+
+from jenkins_jobs.config import JJBConfig
+from jenkins_jobs.errors import InvalidAttributeError
+import jenkins_jobs.local_yaml as yaml
+from jenkins_jobs.modules import project_externaljob
+from jenkins_jobs.modules import project_flow
+from jenkins_jobs.modules import project_matrix
+from jenkins_jobs.modules import project_maven
+from jenkins_jobs.modules import project_multijob
+from jenkins_jobs.modules import view_list
+from jenkins_jobs.modules import view_pipeline
+from jenkins_jobs.parser import YamlParser
+from jenkins_jobs.registry import ModuleRegistry
+from jenkins_jobs.xml_config import XmlJob
+from jenkins_jobs.xml_config import XmlJobGenerator
+
 # This dance deals with the fact that we want unittest.mock if
 # we're on Python 3.4 and later, and non-stdlib mock otherwise.
 try:
     from unittest import mock
 except ImportError:
     import mock  # noqa
-import jenkins_jobs.local_yaml as yaml
-from jenkins_jobs.parser import YamlParser
-from jenkins_jobs.xml_config import XmlJob
-from jenkins_jobs.modules import (project_flow,
-                                  project_matrix,
-                                  project_maven,
-                                  project_multijob)
 
 
 def get_scenarios(fixtures_path, in_ext='yaml', out_ext='xml',
@@ -78,7 +89,7 @@ def get_scenarios(fixtures_path, in_ext='yaml', out_ext='xml',
         if plugins_info_candidate not in files:
             plugins_info_candidate = None
 
-        conf_candidate = re.sub(r'\.yaml$', '.conf', input_filename)
+        conf_candidate = re.sub(r'\.yaml$|\.json$', '.conf', input_filename)
         # If present, add the configuration file
         if conf_candidate not in files:
             conf_candidate = None
@@ -93,15 +104,16 @@ def get_scenarios(fixtures_path, in_ext='yaml', out_ext='xml',
     return scenarios
 
 
-class BaseTestCase(object):
-    scenarios = []
-    fixtures_path = None
+class BaseTestCase(testtools.TestCase):
 
     # TestCase settings:
     maxDiff = None      # always dump text difference
     longMessage = True  # keep normal error message when providing our
 
-    logging.basicConfig()
+    def setUp(self):
+
+        super(BaseTestCase, self).setUp()
+        self.logger = self.useFixture(fixtures.FakeLogger(level=logging.DEBUG))
 
     def _read_utf8_content(self):
         # if None assume empty file
@@ -109,42 +121,35 @@ class BaseTestCase(object):
             return u""
 
         # Read XML content, assuming it is unicode encoded
-        xml_content = u"%s" % codecs.open(self.out_filename,
-                                          'r', 'utf-8').read()
+        xml_content = u"%s" % io.open(self.out_filename,
+                                      'r', encoding='utf-8').read()
         return xml_content
 
     def _read_yaml_content(self, filename):
-        with open(filename, 'r') as yaml_file:
+        with io.open(filename, 'r', encoding='utf-8') as yaml_file:
             yaml_content = yaml.load(yaml_file)
         return yaml_content
+
+    def _get_config(self):
+        jjb_config = JJBConfig(self.conf_filename)
+        jjb_config.validate()
+
+        return jjb_config
+
+
+class BaseScenariosTestCase(testscenarios.TestWithScenarios, BaseTestCase):
+
+    scenarios = []
+    fixtures_path = None
 
     def test_yaml_snippet(self):
         if not self.in_filename:
             return
 
-        if self.conf_filename is not None:
-            config = configparser.ConfigParser()
-            config.readfp(open(self.conf_filename))
-        else:
-            config = {}
+        jjb_config = self._get_config()
 
         expected_xml = self._read_utf8_content()
         yaml_content = self._read_yaml_content(self.in_filename)
-        project = None
-        if ('project-type' in yaml_content):
-            if (yaml_content['project-type'] == "maven"):
-                project = project_maven.Maven(None)
-            elif (yaml_content['project-type'] == "matrix"):
-                project = project_matrix.Matrix(None)
-            elif (yaml_content['project-type'] == "flow"):
-                project = project_flow.Flow(None)
-            elif (yaml_content['project-type'] == "multijob"):
-                project = project_multijob.MultiJob(None)
-
-        if project:
-            xml_project = project.root_xml(yaml_content)
-        else:
-            xml_project = XML.Element('project')
 
         plugins_info = None
         if self.plugins_info_filename is not None:
@@ -154,12 +159,41 @@ class BaseTestCase(object):
             self.addDetail("plugins-info",
                            text_content(str(plugins_info)))
 
-        parser = YamlParser(config, plugins_info)
+        parser = YamlParser(jjb_config)
+        registry = ModuleRegistry(jjb_config, plugins_info)
+        registry.set_parser_data(parser.data)
 
-        pub = self.klass(parser.registry)
+        pub = self.klass(registry)
+
+        project = None
+        if ('project-type' in yaml_content):
+            if (yaml_content['project-type'] == "maven"):
+                project = project_maven.Maven(registry)
+            elif (yaml_content['project-type'] == "matrix"):
+                project = project_matrix.Matrix(registry)
+            elif (yaml_content['project-type'] == "flow"):
+                project = project_flow.Flow(registry)
+            elif (yaml_content['project-type'] == "multijob"):
+                project = project_multijob.MultiJob(registry)
+            elif (yaml_content['project-type'] == "externaljob"):
+                project = project_externaljob.ExternalJob(registry)
+
+        if 'view-type' in yaml_content:
+            if yaml_content['view-type'] == "list":
+                project = view_list.List(None)
+            elif yaml_content['view-type'] == "pipeline":
+                project = view_pipeline.Pipeline(None)
+            else:
+                raise InvalidAttributeError(
+                    'view-type', yaml_content['view-type'])
+
+        if project:
+            xml_project = project.root_xml(yaml_content)
+        else:
+            xml_project = XML.Element('project')
 
         # Generate the XML tree directly with modules/general
-        pub.gen_xml(parser, xml_project, yaml_content)
+        pub.gen_xml(xml_project, yaml_content)
 
         # Prettify generated XML
         pretty_xml = XmlJob(xml_project, 'fixturejob').output().decode('utf-8')
@@ -168,43 +202,43 @@ class BaseTestCase(object):
             pretty_xml,
             testtools.matchers.DocTestMatches(expected_xml,
                                               doctest.ELLIPSIS |
-                                              doctest.NORMALIZE_WHITESPACE |
                                               doctest.REPORT_NDIFF)
         )
 
 
-class SingleJobTestCase(BaseTestCase):
+class SingleJobTestCase(BaseScenariosTestCase):
+
     def test_yaml_snippet(self):
+        config = self._get_config()
+
         expected_xml = self._read_utf8_content()
 
-        if self.conf_filename:
-            config = configparser.ConfigParser()
-            config.readfp(open(self.conf_filename))
-        else:
-            config = None
         parser = YamlParser(config)
         parser.parse(self.in_filename)
 
-        # Generate the XML tree
-        parser.expandYaml()
-        parser.generateXML()
+        registry = ModuleRegistry(config)
+        registry.set_parser_data(parser.data)
+        job_data_list, view_data_list = parser.expandYaml(registry)
 
-        parser.xml_jobs.sort(key=operator.attrgetter('name'))
+        # Generate the XML tree
+        xml_generator = XmlJobGenerator(registry)
+        xml_jobs = xml_generator.generateXML(job_data_list)
+
+        xml_jobs.sort(key=operator.attrgetter('name'))
 
         # Prettify generated XML
         pretty_xml = u"\n".join(job.output().decode('utf-8')
-                                for job in parser.xml_jobs)
+                                for job in xml_jobs)
 
         self.assertThat(
             pretty_xml,
             testtools.matchers.DocTestMatches(expected_xml,
                                               doctest.ELLIPSIS |
-                                              doctest.NORMALIZE_WHITESPACE |
                                               doctest.REPORT_NDIFF)
         )
 
 
-class JsonTestCase(BaseTestCase):
+class JsonTestCase(BaseScenariosTestCase):
 
     def test_yaml_snippet(self):
         expected_json = self._read_utf8_content()
@@ -217,12 +251,11 @@ class JsonTestCase(BaseTestCase):
             pretty_json,
             testtools.matchers.DocTestMatches(expected_json,
                                               doctest.ELLIPSIS |
-                                              doctest.NORMALIZE_WHITESPACE |
                                               doctest.REPORT_NDIFF)
         )
 
 
-class YamlTestCase(BaseTestCase):
+class YamlTestCase(BaseScenariosTestCase):
 
     def test_yaml_snippet(self):
         expected_yaml = self._read_utf8_content()
@@ -239,6 +272,5 @@ class YamlTestCase(BaseTestCase):
             pretty_yaml,
             testtools.matchers.DocTestMatches(expected_yaml,
                                               doctest.ELLIPSIS |
-                                              doctest.NORMALIZE_WHITESPACE |
                                               doctest.REPORT_NDIFF)
         )

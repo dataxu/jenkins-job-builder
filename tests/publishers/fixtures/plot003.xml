@@ -6,6 +6,8 @@
         <hudson.plugins.plot.Plot>
           <title>Sample graph</title>
           <yaxis/>
+          <width>750</width>
+          <height>450</height>
           <csvFileName>persisted.csv</csvFileName>
           <series>
             <hudson.plugins.plot.XMLSeries>
@@ -18,6 +20,9 @@
           </series>
           <group>bench</group>
           <useDescr>false</useDescr>
+          <exclZero>false</exclZero>
+          <logarithmic>false</logarithmic>
+          <keepRecords>false</keepRecords>
           <numBuilds/>
           <style>line</style>
         </hudson.plugins.plot.Plot>

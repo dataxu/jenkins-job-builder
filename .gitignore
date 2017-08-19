@@ -1,10 +1,12 @@
 .*.swp
 *.egg
+*.eggs
 *.egg-info
 *.pyc
 .test
 .testrepository
 .tox
+.idea
 AUTHORS
 build/*
 ChangeLog

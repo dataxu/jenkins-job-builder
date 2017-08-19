@@ -9,6 +9,9 @@ publishers:
           upload-on-failure: false
           upload-from-slave: true
           managed-artifacts: true
+          s3-encryption: true
+          flatten: true
+          dont-wait-for-concurrent-builds: true
       metadata-tags:
         - key: warbl ${garbl}
           value: herp derp weevils
