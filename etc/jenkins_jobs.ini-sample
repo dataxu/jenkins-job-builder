@@ -20,4 +20,3 @@ authtoken=dummy
 [plugin "stash"]
 username=user
 password=pass
-
