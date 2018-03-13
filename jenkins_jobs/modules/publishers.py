@@ -6491,22 +6491,7 @@ def slack(registry, xml_parent, data):
         'jenkins.plugins.slack.SlackNotifier',
     )
 
-    if plugin_ver >= pkg_resources.parse_version("2.0"):
-        mapping = mapping + mapping_20
-
-    if plugin_ver < pkg_resources.parse_version("2.0"):
-        for yaml_name, _, default_value in mapping:
-            # All arguments that don't have a default value are mandatory for
-            # the plugin to work as intended.
-            if not data.get(yaml_name, default_value):
-                raise MissingAttributeError(yaml_name)
-
-        for yaml_name, _, _ in mapping_20:
-            if yaml_name in data:
-                logger.warning(
-                    "'%s' is invalid with plugin version < 2.0, ignored",
-                    yaml_name,
-                )
+    mapping = mapping + mapping_20
 
     for yaml_name, xml_name, default_value in mapping:
         value = data.get(yaml_name, default_value)
